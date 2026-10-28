@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.85.0"
+license = "MIT"
+repository = "https://github.com/Simple-Cortex/distinct"
+authors = ["Mohsin Amjed"]
+
+[workspace.dependencies]
+distinct-core = { path = "crates/distinct-core" }

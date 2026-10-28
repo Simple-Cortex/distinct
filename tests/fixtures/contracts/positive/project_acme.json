@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "project",
+  "id": "main",
+  "brand_id": "acme",
+  "created_at": "2026-10-26T00:00:00Z",
+  "created_by": {
+    "kind": "agent",
+    "id": "distinct-rs",
+    "provenance_ref": null
+  },
+  "privacy": "internal",
+  "dependencies": [],
+  "limitations": [],
+  "extensions": {},
+  "data": {
+    "organization": "Acme Corp",
+    "mode": "refresh",
+    "engagement_depth": "full",
+    "decider_role": "founder",
+    "decider_identity": "Jane Doe",
+    "target_audiences": ["enterprise buyers"],
+    "target_channels": ["website", "email"],
+    "target_languages": ["en"],
+    "requested_delivery": "draft kit",
+    "permissions": ["ingest", "export"],
+    "data_destinations": ["local"],
+    "unknowns": ["competitor landscape"],
+    "scope_limits": ["no legal clearance"]
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "platform",
+  "id": "main",
+  "brand_id": "acme",
+  "created_at": "2026-10-26T00:00:00Z",
+  "created_by": {
+    "kind": "agent",
+    "id": "distinct-rs"
+  },
+  "privacy": "internal",
+  "dependencies": [],
+  "limitations": [],
+  "extensions": {},
+  "data": {
+    "essence": "Reliable simplicity for complex work",
+    "positioning": "The calm tool for busy teams",
+    "audience": "Operations managers at mid-market companies",
+    "channels": ["website", "email", "linkedin"],
+    "languages": ["en"],
+    "personality": ["calm", "precise", "warm"],
+    "values": ["clarity", "reliability", "respect"],
+    "proof_points": ["40% faster onboarding", "99.9% uptime"],
+    "expression_directives": ["short sentences", "active voice"],
+    "unresolved_decisions": ["tone for error messages"],
+    "proof_refs": []
+  }
+}

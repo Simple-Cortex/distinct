@@ -1,0 +1,35 @@
+{
+  "name": "distinct",
+  "version": "0.2.0",
+  "description": "An evidence-led brand-agency agent skill with a minimal Rust state, context and asset companion.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Mohsin Amjed",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SimpleCortex/distinct.git"
+  },
+  "homepage": "https://distinct.style",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "distinct": "bin/distinct.mjs"
+  },
+  "files": [
+    "SKILL.md",
+    "skills/",
+    "references/",
+    "bin/distinct.mjs",
+    "scripts/install.mjs",
+    "scripts/validate-runtime.mjs",
+    "capabilities.json",
+    "runtime-manifest.json",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test tests/runtime/*.test.mjs tests/launcher/*.test.mjs",
+    "rust:check": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings && cargo test --workspace --locked",
+    "validate-runtime": "node scripts/validate-runtime.mjs --manifest runtime-manifest.json --root ."
+  }
+}

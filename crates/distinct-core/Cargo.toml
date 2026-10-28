@@ -1,0 +1,24 @@
+[package]
+name = "distinct-core"
+description = "Distinct core crate (skeleton; features arrive with WO-01 and later)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[dependencies]
+# WO-00 dependency spike — verify each builds on 1.85.0 offline.
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+sha2 = "0.10"
+jcs-canonicalize = "0.2"
+jsonschema = { version = "0.60", default-features = false, features = ["resolve-file"] }
+quick-xml = "0.41"
+fs4 = "1"
+hex = "0.4"
+dom_smoothie = "0.19"
+zip = { version = "7.3.0", default-features = false, features = ["deflate"] }
+dom_query = "=0.29.0"

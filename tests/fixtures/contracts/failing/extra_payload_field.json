@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "project",
+  "id": "main",
+  "brand_id": "acme",
+  "created_at": "2026-10-26T00:00:00Z",
+  "created_by": {"kind": "agent", "id": "distinct-rs"},
+  "privacy": "internal",
+  "dependencies": [],
+  "limitations": [],
+  "extensions": {},
+  "data": {},
+  "extra_field": true
+}
