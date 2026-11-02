@@ -8,7 +8,7 @@ use crate::hash::{self, DOMAIN_GOVERNANCE, DOMAIN_SNAPSHOT};
 use crate::record::RecordKind;
 use crate::store::BrandWorkspace;
 use serde_json::Value;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 /// Readiness verdict produced by governance reconciliation.
 #[derive(Debug)]
@@ -302,6 +302,103 @@ pub fn owner_approval_blockers(objects: &[Value], scope: &str) -> Vec<Value> {
                 ApprovalStatus::NotApproved => "missing_owner_approval",
             };
             Some(serde_json::json!({"code": code, "kind": r["kind"], "id": r["id"]}))
+        })
+        .collect()
+}
+
+/// Current `source` records of type `inspiration_board`.
+fn inspiration_boards(objects: &[Value]) -> Vec<&Value> {
+    current_revisions(objects)
+        .into_iter()
+        .filter(|r| {
+            r["kind"].as_str() == Some("source")
+                && r["data"]["type"].as_str() == Some("inspiration_board")
+        })
+        .collect()
+}
+
+fn board_references(board: &Value) -> impl Iterator<Item = &Value> {
+    board["data"]["references"].as_array().into_iter().flatten()
+}
+
+fn requires_inspiration(scope: &str) -> bool {
+    approval_scope_kinds(scope).contains(&"direction")
+}
+
+fn str_items(v: &Value) -> impl Iterator<Item = &str> {
+    v.as_array().into_iter().flatten().filter_map(Value::as_str)
+}
+
+/// Inspiration-board blockers for scopes covering `direction` (`direction`,
+/// `deliver`, and the unscoped default); empty for every other scope.
+///
+/// - `inspiration_missing`: no current inspiration board.
+/// - `inspiration_unseen`: no reference is `fetched` with a resolving evidence
+///   id and a non-empty observation.
+/// - `inspiration_evidence_dangling`: a `fetched` reference cites an evidence
+///   id absent from `evidence_ids` (for example forgotten). Carries `ref_id`.
+#[must_use]
+pub fn inspiration_blockers(
+    objects: &[Value],
+    evidence_ids: &BTreeSet<String>,
+    scope: &str,
+) -> Vec<Value> {
+    if !requires_inspiration(scope) {
+        return Vec::new();
+    }
+    let boards = inspiration_boards(objects);
+    if boards.is_empty() {
+        return vec![serde_json::json!({
+            "code": "inspiration_missing", "kind": "source", "id": "inspiration-board"
+        })];
+    }
+    let mut blockers = Vec::new();
+    let mut any_seen = false;
+    for board in &boards {
+        for r in board_references(board).filter(|r| r["status"].as_str() == Some("fetched")) {
+            let ids: Vec<&str> = str_items(&r["evidence_ids"]).collect();
+            let resolves = ids.iter().any(|id| evidence_ids.contains(*id));
+            let observed = str_items(&r["observations"]).any(|o| !o.trim().is_empty());
+            any_seen |= resolves && observed;
+            if ids.iter().any(|id| !evidence_ids.contains(*id)) {
+                blockers.push(serde_json::json!({
+                    "code": "inspiration_evidence_dangling",
+                    "kind": board["kind"], "id": board["id"], "ref_id": r["ref_id"],
+                }));
+            }
+        }
+    }
+    if !any_seen {
+        blockers.push(serde_json::json!({
+            "code": "inspiration_unseen", "kind": "source", "id": boards[0]["id"],
+        }));
+    }
+    blockers
+}
+
+/// Non-blocking `inspiration_unreachable` advisories, one per unreachable
+/// reference, for the same scopes as [`inspiration_blockers`].
+#[must_use]
+pub fn inspiration_advisories(objects: &[Value], scope: &str) -> Vec<String> {
+    if !requires_inspiration(scope) {
+        return Vec::new();
+    }
+    inspiration_boards(objects)
+        .into_iter()
+        .flat_map(|b| {
+            board_references(b)
+                .filter(|r| r["status"].as_str() == Some("unreachable"))
+                .map(|r| {
+                    format!(
+                        "inspiration_unreachable: source/{} reference {} ({})",
+                        b["id"].as_str().unwrap_or("?"),
+                        r["ref_id"].as_str().unwrap_or("?"),
+                        r["unreachable_reason"]
+                            .as_str()
+                            .unwrap_or("no reason given"),
+                    )
+                })
+                .collect::<Vec<_>>()
         })
         .collect()
 }

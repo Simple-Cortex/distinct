@@ -35,6 +35,7 @@ At project kickoff to establish the decision architecture, diagnose the real pro
    - "What is the specific business friction you are experiencing right now, rather than just the visual fatigue?"
    - "If we solve the stated design problem but the business metrics do not improve, what would that tell us about the underlying positioning?"
    - "Are there any pending leadership changes, mergers, or funding rounds that might alter these goals in the next six months?"
+   Fold in reference intake within the same batch limit: which brands or work they like, which they dislike (and why), and which admired brands sit outside the category. Capture the links or files as given; they are fetched and inspected later in `direct` (`references/inspiration.md`), not described from memory now.
 4. **Define Scope and Cadence:** Establish the approval gates, feedback protocols (requiring one consolidated voice from the driver), and review latency math. 
 5. **Persist the Charter:** Import the Project Charter record, which includes the decider, veto map, problem hypothesis, and gate calendar.
    ```bash

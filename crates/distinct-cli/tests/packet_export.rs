@@ -1034,6 +1034,42 @@ fn gate_ready_when_no_blockers() {
     });
     import_record(&dir, "acme", &project);
 
+    // WO-21: the default scope covers `direction`, so it needs a valid board.
+    let img = dir.join("insp.png");
+    fs::write(&img, b"fake image bytes").unwrap();
+    let o = run(&[
+        "evidence-import",
+        "--brand",
+        "acme",
+        "--workspace",
+        &dir.to_string_lossy(),
+        "--file",
+        &img.to_string_lossy(),
+        "--source-id",
+        "insp-r1",
+    ]);
+    assert_eq!(exit_code(&o), 0, "evidence-import failed: {}", stdout(&o));
+    import_record(
+        &dir,
+        "acme",
+        &serde_json::json!({
+            "schema_version": "1.0.0",
+            "kind": "source",
+            "id": "inspiration-board",
+            "brand_id": "acme",
+            "privacy": "public",
+            "created_at": "2026-10-27T00:00:00Z",
+            "created_by": {"kind": "agent", "id": "distinct-rs"},
+            "dependencies": [],
+            "limitations": [],
+            "data": {"type": "inspiration_board", "origin": "user_supplied",
+                "references": [{"ref_id": "r1", "url": "https://example.com", "label": "x",
+                    "stance": "like", "status": "fetched", "evidence_ids": ["insp-r1"],
+                    "observations": ["condensed grotesk, all caps, heavy rules"],
+                    "user_reaction": null, "unreachable_reason": null}]}
+        }),
+    );
+
     // No check plans → no missing results → ready.
     let o = run(&[
         "gate",

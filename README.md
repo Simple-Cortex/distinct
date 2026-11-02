@@ -16,7 +16,7 @@ npx skills@latest add Simple-Cortex/distinct
 
 The native companion `distinct-rs` is not part of that install and is never downloaded for you. Get it one of three ways:
 
-- Homebrew (macOS): `brew install simple-cortex/tap/distinct`. Available after the tap is published.
+- Homebrew (macOS): `brew install simple-cortex/tap/distinct` (builds from the tagged source).
 - GitHub Releases (all platforms): download the archive for your platform, check it against `SHA256SUMS`, and put `distinct-rs` on your `PATH`. On macOS the binary may carry a quarantine attribute because it is not notarized yet. If the system refuses to run it, use `xattr -d com.apple.quarantine distinct-rs`.
 - Manual: set `DISTINCT_RS_BIN` to the binary's location.
 

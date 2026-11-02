@@ -1,0 +1,77 @@
+# distinct name check: default flag list (WO-25).
+# INCOMPLETE, English-only and advisory. A name that matches nothing here has
+# not been cleared; a name that matches may be fine. Not linguistic screening,
+# not trademark clearance.
+# Format: one term per line, lowercase. Lines starting with '#' are comments.
+# A leading '=' means match a whole word only (split on spaces, punctuation
+# and camelCase), so "anal" flags "Anal Co" but not "Analytics". Everything
+# else also matches as a substring.
+# Matching is case-insensitive on the NFKC form of the candidate.
+#
+# Profanity stems
+fuck
+shit
+bitch
+bastard
+cunt
+=dick
+=cock
+=ass
+asshole
+=arse
+=cum
+=tit
+=tits
+boob
+whore
+slut
+piss
+=crap
+damn
+=wank
+twat
+bollock
+=prick
+=douche
+# Sexual and body terms
+porn
+=sex
+sexy
+=anal
+=rape
+nude
+horny
+penis
+vagina
+orgasm
+# Slur-adjacent stems and demeaning terms
+nigg
+fagg
+=fag
+=dyke
+retard
+spastic
+tranny
+chink
+gook
+kike
+=spic
+wetback
+=coon
+# Violence and death
+murder
+suicide
+terror
+nazi
+hitler
+# Unfortunate substrings and common bad-reading fragments
+=scam
+fraud
+=spam
+sucks
+poop
+=fart
+vomit
+herpes
+=pee
+=wee

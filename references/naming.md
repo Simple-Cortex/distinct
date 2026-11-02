@@ -66,6 +66,8 @@ Perform a silent nomination: select a shortlist of strong candidates across diff
 - A one-sentence strategic rationale tracing to the platform.
 - A simple text-based mockup context (e.g., "Used as a email sign-off").
 
+Run `name check` on the prescreen list before nominating (`node <skill-dir>/bin/distinct.mjs name check --workspace <project> --brand <id> --candidates <file.json>`; input shape in `references/commands-assets.md`). It reports lookalike characters, mixed scripts, NFKC changes and small flag-list hits. No result here means nothing was found by an incomplete offline list, not that the name is safe.
+
 ### Step 3a: Host-run availability screening
 
 The host agent (not the native CLI, which makes no network calls) performs preliminary availability checks.

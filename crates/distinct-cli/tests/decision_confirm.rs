@@ -387,11 +387,60 @@ fn gate_unapproved_platform_is_blocked() {
     fs::remove_dir_all(&f.dir).ok();
 }
 
+/// A fetched, observed inspiration board so `direction`-covering scopes pass.
+fn import_valid_board(f: &Fixture) {
+    let img = f.dir.join("insp.png");
+    fs::write(&img, b"fake image bytes").unwrap();
+    let o = run_env(
+        &[
+            "evidence-import",
+            "--brand",
+            "acme",
+            "--workspace",
+            &f.ws,
+            "--file",
+            &img.to_string_lossy(),
+            "--source-id",
+            "insp-r1",
+        ],
+        &[],
+    );
+    assert_eq!(code_of(&o), 0, "{}", out_s(&o));
+    let board = json!({
+        "schema_version": "1.0.0", "kind": "source", "id": "inspiration-board",
+        "brand_id": "acme", "privacy": "public",
+        "created_at": "2026-10-27T00:00:00Z",
+        "created_by": {"kind": "agent", "id": "distinct-rs"},
+        "dependencies": [], "limitations": [],
+        "data": {"type": "inspiration_board", "origin": "user_supplied",
+            "references": [{"ref_id": "r1", "url": "https://example.com", "label": "x",
+                "stance": "like", "status": "fetched", "evidence_ids": ["insp-r1"],
+                "observations": ["condensed grotesk, all caps, heavy rules"],
+                "user_reaction": null, "unreachable_reason": null}]}
+    });
+    let bp = f.dir.join("board.json");
+    fs::write(&bp, board.to_string()).unwrap();
+    let o = run_env(
+        &[
+            "record-import",
+            "--brand",
+            "acme",
+            "--workspace",
+            &f.ws,
+            "--file",
+            &bp.to_string_lossy(),
+        ],
+        &[],
+    );
+    assert_eq!(code_of(&o), 0, "{}", out_s(&o));
+}
+
 #[test]
 fn gate_attested_approval_is_ready() {
     let f = setup("gate-approved");
     let id = record_hooked(&f).1.unwrap();
     assert_eq!(code_of(&confirm(&f, &id, CODE)), 0);
+    import_valid_board(&f);
     for scope in ["platform", "deliver", "default"] {
         let (ready, blockers) = gate_blockers(&f, scope);
         assert!(ready, "scope {scope}: {blockers:?}");

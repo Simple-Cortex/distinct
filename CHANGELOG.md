@@ -4,6 +4,22 @@ All notable changes to Distinct are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-02
+
+### Added
+- `name check`: offline naming screen that reports NFKC changes, Unicode scripts (Japanese and Korean count as single-script), confusable lookalikes (UTS #39) and hits from a small, incomplete English flag list for each candidate. Advisory only: no verdict, no network calls, not trademark clearance.
+- `evidence import --replace` to overwrite a source id on purpose; the result reports `replaced` and `previous_byte_hash`.
+
+### Changed
+- `evidence import` refuses to reuse a source id for different bytes (exit 3) instead of silently replacing the earlier entry. Re-importing identical bytes succeeds with `unchanged: true`.
+- The command reference is split: logo, colour and naming commands moved verbatim to `references/commands-assets.md`, so routes load only the commands they use.
+- Launcher trace capture (`DISTINCT_TRACE`) adds an `args` field with flag names only; every value is `<redacted>` except `--scope` and an `insp-*` marker for inspiration evidence.
+
+## [0.2.1] - 2026-11-02
+
+### Added
+- Reference intake: `gate` now blocks `direction`, `deliver` and the default scope until an inspiration board (a `source` record of type `inspiration_board`) holds a fetched, observed reference whose evidence is in the index. New `references/inspiration.md` with the fetch-and-look procedure and a starter catalog of studios, galleries and aesthetic directions.
+
 ## [0.2.0] - 2026-10-27
 
 First public release.

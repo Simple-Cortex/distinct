@@ -1,6 +1,6 @@
 {
   "$schema": "distinct-capabilities/v1",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "native": {
     "init": "Initialize a brand project workspace",
     "status": "Summarize current revision, approvals, blockers; read-only",
@@ -26,6 +26,7 @@
     "logo proof": "Render SVG proofs via resvg worker with an isolated worker: in-process memory cap, 10 s timeout, macOS seatbelt / Linux ulimit",
     "logo review-packet": "Frozen proofs, inspection findings and SVG hash for review (no verdict)",
     "color check": "Advisory WCAG/APCA/CVD colour-pair analysis for logo colours",
+    "name check": "Offline naming red-flag screen (NFKC, scripts, UTS #39 confusables, small flag list); heuristic only, not clearance",
     "test plan": "Persist validated/frozen test protocol from request file",
     "test packet": "Neutral stimuli/protocol projection for a test plan",
     "test import": "Import actual test observations and limitations",

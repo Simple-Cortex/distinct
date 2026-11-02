@@ -2,22 +2,20 @@
 
 Run `status` first. Exit codes: 0 ok, 1 check failed, 2 unavailable/blocked, 3 invalid input.
 
-Notation: `D` = `node <skill-dir>/bin/distinct.mjs`; `G` = `--workspace <p> --brand <id>`. All output is one JSON envelope: `{protocol_version, engine_version, execution, result, limitations[], changed[], error}`. Use absolute paths. Global: `--max-bytes N` (min 1024, default 16384; bounds `packet`, `test packet`, `review-packet`); `--format` has no effect.
+Notation: `D` = `node <skill-dir>/bin/distinct.mjs`; `G` = `--workspace <p> --brand <id>`. Output: one JSON envelope `{protocol_version, engine_version, execution, result, limitations[], changed[], error}`. Use absolute paths. Global: `--max-bytes N` (min 1024, default 16384; bounds `packet`, `test packet`, `review-packet`); `--format` has no effect.
 
 Cross-cutting facts (verified):
 - verify exits 1 when state_valid is false or any hash mismatches. gate keeps exit 0 with ready:false (domain status in result).
 - IDs: brand `[a-z][a-z0-9-]{0,47}`; record/source ids `[a-z][a-z0-9_.-]{0,95}`. Privacy is one of `public|internal|confidential|restricted`. Duplicate JSON keys are rejected (exit 3).
 - Record kinds: project source claim current_brand platform voice direction system asset logo_intent logo_finding logo_proof color_check research_item test_plan test_result proof check_plan check_result review decision. Governance: check_result, review, decision.
 - The store is append-only. Re-importing a changed record keeps old revisions; `query` lists every revision with no "current" marker.
-- State sync: all mutating commands (record import, evidence import, logo inspect, logo proof, color check, check plan create, check result record, review create, decision record/confirm, test plan, test import, patch --apply) update STATE so verify stays clean.
+- State sync: every mutating command updates STATE so verify stays clean.
 
 ### `init`
-`D init G [--name "Larkspur Tea"]` — create `.distinct/<brand>/` and STATE.json. Mutates: yes. Exit 0; already initialized is exit 0 with `status:"already_initialized"`.
-Notes: other commands exit 3 "brand not initialized" until this runs.
+`D init G [--name "Larkspur Tea"]` — create `.distinct/<brand>/` and STATE.json. Mutates: yes. Exit 0; already initialized is exit 0 (`already_initialized`); other commands exit 3 until init.
 
 ### `status`
 `D status G` — read STATE.json (name, generation, snapshot/governance hashes). Mutates: no. Exit 0 (`status:"not_initialized"` if missing).
-Notes: no record, approval or blocker lists; use `query` and `gate`.
 
 ### `capabilities`
 `D capabilities [--workspace <p>]` — list native commands, host-guided and not-first-pass capabilities. Mutates: no. Exit 0; needs no `--brand` or init.
@@ -28,8 +26,8 @@ Input: `{"schema_version":"1.0.0","kind":"claim","id":"claim-origin","brand_id":
 Notes: required by the engine: `kind`, `id`, `privacy`, `brand_id` equal to `--brand`; `data` is free-form. A `source` with `data.quote` and no `data.consent:true` is withheld from packets/exports. Do NOT use it for check_result/review/decision: governance kinds are rejected (exit 3). Use the dedicated commands.
 
 ### `evidence import`
-`D evidence import G --file <payload> --source-id <id>` — copy raw bytes into `evidence/`, hash them, write an index entry. Mutates: yes. Exit 0 (`byte_hash`, `byte_count`); 3 on invalid source id or unreadable file.
-Notes: bytes only; no `source` record, privacy or consent. Prefer `ingest extract`/`ingest import`.
+`D evidence import G --file <payload> --source-id <id> [--replace]` — store hashed bytes plus an index entry. Mutates: yes. Exit 0 (`byte_hash`, `byte_count`; `unchanged` if same bytes); 3 on invalid id, unreadable file, or reused id with other bytes (`--replace` overwrites).
+Notes: bytes only (no `source` record, privacy, consent); prefer `ingest extract`/`ingest import`.
 
 ### `evidence forget`
 `D evidence forget G --id <evidence-id> --reason "<text>" [--expected-state <content_snapshot_hash>]` — delete payload, index and derived extracted-text records, write a tombstone, flag dependents stale. Mutates: yes (destructive). Exit 0; 3 on state mismatch or missing flags.
@@ -63,7 +61,8 @@ Notes: `--scope` names come from a fixed vocabulary: `platform_fields`(platform)
 
 ### `gate`
 `D gate G [--scope <name>]` — reconcile STATE hashes; flag missing check results, stale dependencies, forgotten evidence, missing owner approval. Mutates: no. Exit 0 always; read `ready`, `blockers[]`, `stale[]`.
-Notes: `ready` needs zero blockers. Each in-scope current record needs an attested owner decision on its current revision, else blocker `{code:missing_owner_approval|stale_owner_approval,kind,id}`. Scope: a content kind checks that kind; `deliver` or none checks platform, voice, direction, system; other names check none. A `check_plan` lacking a `check_result` blocks.
+Scopes `direction`, `deliver` and default also need an inspiration board (`source` with `data.type` `inspiration_board`; shape in `references/inspiration.md`). Blockers: `inspiration_missing`, `inspiration_unseen`, `inspiration_evidence_dangling` (+`ref_id`). Warning: `inspiration_unreachable`.
+Notes: `ready` needs zero blockers. Each in-scope current record needs an attested owner decision on that revision, else blocker `{code:missing_owner_approval|stale_owner_approval,kind,id}`. Scope: a content kind checks that kind; `deliver` or none checks platform, voice, direction, system; other names check none. A `check_plan` lacking a `check_result` blocks.
 
 ### `verify`
 `D verify G` — rehash every object and recompute snapshot and governance hashes. Mutates: no. Exit 0 when state_valid is true; exit 1 when state_valid is false or any hash mismatches; read `state_valid` and `blockers[]`.
@@ -98,18 +97,18 @@ Notes: only when the owner asked this session. Code XXXXX-XXXXX (case/hyphen ign
 Only attested decisions approve; `gate` warns `unattested_decision` on others.
 
 ### `review-packet`
-`D review-packet G --scope <id|kind|all> --out <file> [--allow public,internal]` — freeze matching records with a privacy filter and builder-rationale fields stripped (`builder_rationale, persuasion, strategy_notes, internal_reasoning, model_reasoning, agent_reasoning, draft_notes, working_hypothesis`). Mutates: yes (`<file>`). Exit 0; 3 if the packet exceeds `--max-bytes` (default 16384; narrow `--scope all`).
-Notes: scope matches record kind, record id or `data.scope`. Default privacy public+internal.
+`D review-packet G --scope <id|kind|all> --out <file> [--allow public,internal]` — freeze matching records, privacy-filtered, builder-rationale fields stripped (`builder_rationale, persuasion, strategy_notes, internal_reasoning, model_reasoning, agent_reasoning, draft_notes, working_hypothesis`). Mutates: yes (`<file>`). Exit 0; 3 if the packet exceeds `--max-bytes` (narrow `--scope all`).
+Notes: scope matches kind, id or `data.scope`. Default privacy public+internal.
 
 ### `patch`
-`D patch G --plan <plan.json> --dry-run|--apply [--expected-state <content_snapshot_hash>]` — typed add/replace/remove of content records. Mutates: apply yes, dry-run no. Exit 0; 3 on bad plan, governance kind, brand mismatch, `--expected-state` mismatch, or parent_hash conflict. One of `--dry-run` or `--apply` is required.
+`D patch G --plan <plan.json> --dry-run|--apply [--expected-state <content_snapshot_hash>]` — typed add/replace/remove of content records. Mutates: apply yes, dry-run no. Exit 0; 3 on bad plan, governance kind, brand or `--expected-state` mismatch, or parent_hash conflict. One of `--dry-run`/`--apply` required.
 Input: `{"brand_id":"larkspur","operations":[{"op":"replace","kind":"platform","id":"main","parent_hash":"<content hash from query>","data":{"essence":"..."}},{"op":"add","kind":"claim","id":"claim-blend","data":{"text":"Blends are mixed in small batches."}}]}` (`remove`: `kind`,`id`,`parent_hash`).
-Notes: kinds check_result, review, decision are refused (exit 3). Never approves (`approval_required:true`). `--apply` verifies parent_hash matches the record's current content hash; mismatch is exit 3 conflict. `replace` keeps the original record's privacy (public stays public), `remove` writes a tombstone record.
+Notes: kinds check_result, review, decision are refused (exit 3). Never approves (`approval_required:true`). A parent_hash mismatch is a conflict (exit 3). `replace` keeps the record's privacy; `remove` writes a tombstone.
 
 ### `test plan`
 `D test plan G --request <plan.json>` — validate and freeze a test protocol (`test_plan`, privacy internal). Mutates: yes. Exit 0 (`lifecycle:"frozen"`); 3 if a required field is missing.
 Input: `{"id":"tp-name-recall","question":"Do first-time readers recall the name after one exposure?","method":"recall_interview","scope":"naming","stimuli_refs":["name-card-a"],"stop_condition":"6 sessions","facilitator":"host","hypothesis":"...","budget":{},"permissions":{},"limitations":[],"protocol_version":"1"}`
-Notes: required: question, method, scope (string), stimuli_refs (array), stop_condition, facilitator. `id` is optional (derived from the question).
+Notes: required: question, method, scope, stimuli_refs (array), stop_condition, facilitator. `id` optional.
 
 ### `test packet`
 `D test packet G --test <plan-id>` — neutral stimuli/protocol projection (no hypothesis) to hand a tester. Mutates: no. Exit 0; 3 if the plan is unknown or over `--max-bytes`.
@@ -117,26 +116,10 @@ Notes: required: question, method, scope (string), stimuli_refs (array), stop_co
 ### `test import`
 `D test import G --results <results.json>` — store actual observations as a `test_result` linked to a plan. Mutates: yes. Exit 0; 3 on invalid shape or unknown frozen_plan_ref.
 Input: `{"id":"tr-name-1","data":{"frozen_plan_ref":"tp-name-recall","execution":"completed","observations":[{"stimulus":"name-card-a","participant":"P1","note":"recalled name unprompted"}],"interpretation":"mixed","limitations":["n=1"]}}`
-Notes: `execution` is `completed|partial|blocked|error|not_run`; `completed` needs at least one observation. Optional `interpretation`: `supports|challenges|mixed|inconclusive|not_assessed`. `frozen_plan_ref` is checked against existing test_plan records; unknown ref → exit 3.
+Notes: `execution` is `completed|partial|blocked|error|not_run`; `completed` needs an observation. Optional `interpretation`: `supports|challenges|mixed|inconclusive|not_assessed`.
 
 ### `test summarize`
 `D test summarize G --run <plan-id>` — deterministic counts per execution status, recorded interpretations, and `gaps` (planned stimuli versus observations). Mutates: no. Exit 0.
-Notes: counts only. Unknown run id returns `plan:null`, exit 0.
+Notes: counts only. Unknown run id: `plan:null`, exit 0.
 
-### `logo inspect`
-`D logo inspect G --file <logo.svg>` — static structural SVG check; stores a `logo_finding`. Mutates: yes. Exit 0 (read `verdict`: `inspected` or `invalid`); 3 on oversize, depth or element-limit breach.
-Notes: no optical or brand judgment. Scripts and external images are flagged `unsupported`/`issues` (verdict `invalid`).
-
-### `logo proof`
-`D logo proof G --file <logo.svg> --out <dir> [--profile <profile.json>] [--force]` — render PNG proofs in a sandboxed resvg worker (10 s, memory cap); stores a `logo_proof`. Mutates: yes (PNGs to `<dir>`, `proofs/`). If a pre-job probe shows the host refuses nesting: no seatbelt, `os_sandbox: host_inherited` + limitation `os_sandbox_host_inherited`. Exit 0; 2 if the latest inspect verdict for this file hash is not `inspected` (run `logo inspect`) or the OS sandbox fails; 3 on bad profile, `..` in `--out`, or non-empty `--out` without `--force`.
-Profile: `{"renders":[{"size_px":128,"background":"transparent"},{"size_px":512,"background":"#ffffff"}]}`
-Notes: 1 to 24 renders, `size_px` 1 to 4096 (under 16 MP), background `transparent` or `#rrggbb`; unknown fields are rejected. Default: 128 and 256 transparent, 512 on `#ffffff`. Files: `render_<i>_<n>x<n>.png`.
-
-### `logo review-packet`
-`D logo review-packet G` — list frozen logo findings (id, verdict, file hash, counts) and proofs (renderer, render count) for review. Mutates: no. Exit 0.
-Notes: no verdict by design.
-
-### `color check`
-`D color check G --pairs <pairs.txt>` — advisory WCAG contrast, APCA Lc and protan/deutan/tritan simulation per foreground/background pair; stores a `color_check`. Mutates: yes. Exit 0; 3 on zero valid pairs.
-Input (text, one pair per line, hex WITH or WITHOUT `#`; `//` lines are comments): `#5b3f8c #f4efe6` then `c9a227 ffffff`
-Notes: `//` lines are comments. `#rrggbb` and `#rgb` are accepted. Zero valid pairs → exit 3. The response has only `pair_count`/`check_id`; the numbers are in the stored `color_check` record in `.distinct/<brand>/store/objects/`. Advisory, not certification.
+Logo, colour and naming commands (`logo inspect|proof|review-packet`, `color check`, `name check`): `references/commands-assets.md`.

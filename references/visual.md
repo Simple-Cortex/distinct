@@ -12,6 +12,7 @@ Translating the approved platform (essence, attributes, voice) into concrete vis
 - Explicit scope ID.
 
 **Procedure**
+0. **Reference intake (mandatory):** follow `references/inspiration.md`; run `gate --scope direction` and stop on inspiration blockers.
 1. **Extract constraints:** Query the approved platform and voice records. Pull the central idea, 3-5 attributes with "but not" guardrails, tensions, and expression directives.
 2. **Host-guided noun list generation:** Draft 15-25 concrete nouns (advisory target) grouped by category (People, Nature, Places, Objects, Letters). Present to the owner for elimination.
 3. **Define metaphor and expressions:** Complete the sentence "The brand is like..." and list 3-6 drawable expressions (advisory target) of the central idea.
@@ -27,7 +28,7 @@ Translating the approved platform (essence, attributes, voice) into concrete vis
 - "If this brand were a physical structure or natural phenomenon, what would it be and why?"
 
 **Artifact fields: `visual_brief.json`**
-- `inputs`: central idea, attributes, tensions, expression directives.
+- `inputs`: central idea, attributes, tensions, expression directives, and `inputs.inspiration_refs` (the `ref_id`s from the inspiration board that the brief uses).
 - `noun_list`: categorized nouns, eliminated items with reasons, final 10-15 approved nouns (advisory).
 - `metaphor`: single sentence and 3-6 expressions (advisory target).
 - `design_criteria`: visual properties in tiers (primary, secondary, tertiary) and an avoid list.
@@ -36,8 +37,7 @@ Translating the approved platform (essence, attributes, voice) into concrete vis
 - `sign_off`: owner name and date.
 
 **Host-guided steps & fallback**
-Noun lists, visual sandboxes, and mood boards require human curation or external design tools.
-*Fallback:* If image generation or curation tools are unavailable, produce a text-based Visual Brief detailing the noun list, metaphor, typographic directions, color palettes, and category gaps. The owner must review the text criteria and record a decision before proceeding. Use `node <skill-dir>/bin/distinct.mjs record import --file visual-brief.json` to persist the text-based artifact.
+Noun lists and visual sandboxes need the owner or external design tools. Reference intake follows `references/inspiration.md`: if a site blocks fetching or no browser or network tool exists, mark the reference `unreachable` with the reason and ask the user to drop screenshots or images into the workspace. A text-only Visual Brief (noun list, metaphor, typographic directions, colour palettes, category gaps) is allowed only after the user has been asked for files, and `gate` still blocks until at least one reference is fetched. The owner must review the criteria and record a decision before proceeding. Persist the artifact with `node <skill-dir>/bin/distinct.mjs record import --file visual-brief.json`.
 
 **Native commands**
 ```bash
@@ -53,6 +53,7 @@ node <skill-dir>/bin/distinct.mjs decision record --file decision.json --owner <
 - Owner refuses to eliminate nouns or provide constraints.
 
 **Honesty rules**
+- Never describe a reference you have not fetched in this session.
 - Never invent competitor logos or market data; if category mapping is unverified, label it as a host-guided assumption.
 - Do not claim visual equivalence or optical balance without actual visual proof.
 - Agent recommendations are not owner approvals; wait for explicit `decision record`.
@@ -70,7 +71,7 @@ A B2B logistics platform needs to convey "precision and momentum." The agent ext
 ---
 
 ## Native commands for visual work
-Exact syntax: `references/commands.md`.
+Exact syntax: `references/commands-assets.md` (logo, colour); records, gate and decisions in `references/commands.md`.
 - `logo inspect --file <svg>`: structural checks only (validity, viewBox, unsupported features).
 - `logo proof --file <svg> --profile <file> --out <dir>`: real PNG renders at the profile's sizes and backgrounds, in an isolated worker with a memory cap, a 10 s timeout and an OS sandbox where available (`os_sandbox` is `seatbelt`, `host_inherited` when the host's own macOS sandbox refused nesting, or `none`). It needs the latest inspect verdict to be `inspected`. The raster results (`min_feature_px`, contrast) are advisory and never a pass.
 - `color check --pairs <file>`: WCAG 2.x ratio, advisory APCA and colour-vision *simulation* for colour pairs. Advisory only.

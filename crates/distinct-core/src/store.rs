@@ -229,6 +229,43 @@ impl BrandWorkspace {
         Ok(byte_hash)
     }
 
+    /// Read an existing evidence index entry by source id, if present.
+    pub fn read_evidence_index(
+        &self,
+        source_id: &str,
+    ) -> Result<Option<serde_json::Value>, StoreError> {
+        // source_id becomes a file name below; validate before touching the path.
+        crate::id::validate_record_id(source_id)
+            .map_err(|e| StoreError::InvalidRecord(format!("invalid source_id: {e}")))?;
+        let meta_path = self.evidence_index_dir().join(format!("{source_id}.json"));
+        if !meta_path.exists() {
+            return Ok(None);
+        }
+        let contents = std::fs::read_to_string(&meta_path)
+            .map_err(|e| StoreError::Io(format!("read evidence index: {e}")))?;
+        serde_json::from_str(&contents)
+            .map(Some)
+            .map_err(|e| StoreError::Parse(format!("corrupt evidence index: {e}")))
+    }
+
+    /// Ids of all evidence currently in the index (forgotten evidence is absent).
+    pub fn evidence_ids(&self) -> Result<std::collections::BTreeSet<String>, StoreError> {
+        let dir = self.evidence_index_dir();
+        let mut ids = std::collections::BTreeSet::new();
+        if !dir.exists() {
+            return Ok(ids);
+        }
+        for entry in std::fs::read_dir(&dir).map_err(|e| StoreError::Io(e.to_string()))? {
+            let path = entry.map_err(|e| StoreError::Io(e.to_string()))?.path();
+            if path.extension().is_some_and(|e| e == "json") {
+                if let Some(stem) = path.file_stem().and_then(|s| s.to_str()) {
+                    ids.insert(stem.to_string());
+                }
+            }
+        }
+        Ok(ids)
+    }
+
     /// List all stored objects, optionally filtered by kind.
     pub fn list_objects(
         &self,

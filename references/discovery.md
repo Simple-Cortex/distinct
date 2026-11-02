@@ -105,7 +105,7 @@ Execute `landscape` after `discover` is complete. The goal is to map the competi
    Analyze the 5-7 deep competitors. Map their primary archetypes, promises, and messaging. Identify the "sameness" in one line (e.g., "sans serif, geometric type, loads of blue, lots of jargon"). 
 
 3. **Run the visual topology audit (Host-guided)**
-   Analyze the ~20 shallow competitors. Record the dominant shape families, color palettes (using HSL bins if possible), and metaphors. Look for the "lonely but fitting" visual combinations that the category ignores.
+   Analyze the ~20 shallow competitors. Visual topology claims require imported screenshot evidence per competitor (`evidence import`); competitors you could not fetch are listed as unverified. Record the dominant shape families, color palettes (using HSL bins if possible), and metaphors. Look for the "lonely but fitting" visual combinations that the category ignores.
 
 4. **Run the cover-the-logo test (Host-guided)**
    Conceptually place the client's current presence next to competitors. Cover the logos and ask:

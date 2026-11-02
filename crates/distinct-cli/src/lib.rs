@@ -8,6 +8,7 @@ pub mod dispatch;
 
 mod cmd_decision;
 mod cmd_ingest;
+mod cmd_name;
 
 use cmd_ingest::{cmd_evidence_forget, cmd_ingest};
 use dispatch::{parse_args, write_envelope, write_error, CliArgs};
@@ -80,6 +81,7 @@ fn dispatch_command<O: Write, E: Write>(args: &CliArgs, out: &mut O, err: &mut E
         "color-check" => cmd_color_check(args, out, err),
         "render-worker" => cmd_render_worker(out, err),
         "ingest" => cmd_ingest(args, out, err),
+        "name" => cmd_name::cmd_name(args, out),
         "evidence-forget" => cmd_evidence_forget(args, out, err),
         "test" => cmd_test(args, out, err),
         "patch" => cmd_patch(args, out, err),
@@ -342,17 +344,28 @@ fn cmd_gate<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E) -> Ex
                 Ok(o) => o,
                 Err(e) => return write_error(out, "gate", &e.to_string(), Exit::Invalid),
             };
+            let evidence_ids = match ws.evidence_ids() {
+                Ok(ids) => ids,
+                Err(e) => return write_error(out, "gate", &e.to_string(), Exit::Invalid),
+            };
             let approval = distinct_core::governance::owner_approval_blockers(&objects, scope);
-            let ready = verdict.ready && approval.is_empty();
+            let inspiration =
+                distinct_core::governance::inspiration_blockers(&objects, &evidence_ids, scope);
+            let mut warnings = verdict.warnings;
+            warnings.extend(distinct_core::governance::inspiration_advisories(
+                &objects, scope,
+            ));
+            let ready = verdict.ready && approval.is_empty() && inspiration.is_empty();
             let mut blockers: Vec<serde_json::Value> =
                 verdict.blockers.into_iter().map(Into::into).collect();
             blockers.extend(approval);
+            blockers.extend(inspiration);
             let result = serde_json::json!({
                 "brand_id": brand,
                 "scope": scope,
                 "ready": ready,
                 "blockers": blockers,
-                "warnings": verdict.warnings,
+                "warnings": warnings,
                 "stale": verdict.stale,
                 "missing_reviews": verdict.missing_reviews,
                 "missing_proofs": verdict.missing_proofs,
@@ -569,6 +582,7 @@ fn cmd_evidence_import<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &m
         .iter()
         .position(|a| a == "--source-id")
         .and_then(|i| args.rest.get(i + 1));
+    let replace = args.rest.iter().any(|a| a == "--replace");
 
     let file_path = match file_path {
         Some(p) => p.as_str(),
@@ -615,16 +629,59 @@ fn cmd_evidence_import<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &m
         );
     }
 
-    match ws.store_evidence(&bytes, source_id) {
-        Ok(hash) => {
-            let result = serde_json::json!({
-                "brand_id": brand,
-                "source_id": source_id,
-                "byte_hash": hash.as_hex(),
-                "byte_count": bytes.len(),
-            });
-            write_envelope(out, "evidence-import", result, vec![], vec![])
+    let new_hash = distinct_core::hash::hash_bytes(&bytes);
+
+    match ws.read_evidence_index(source_id) {
+        Ok(Some(existing)) => {
+            let prev_hash = existing["byte_hash"].as_str().unwrap_or("");
+            if prev_hash == new_hash.as_hex() {
+                let result = serde_json::json!({
+                    "brand_id": brand,
+                    "source_id": source_id,
+                    "byte_hash": new_hash.as_hex(),
+                    "byte_count": bytes.len(),
+                    "unchanged": true,
+                });
+                return write_envelope(out, "evidence-import", result, vec![], vec![]);
+            }
+            if !replace {
+                return write_error(
+                    out,
+                    "evidence-import",
+                    &format!(
+                        "source id '{source_id}' already holds different evidence; \
+                         use a new --source-id or pass --replace"
+                    ),
+                    Exit::Invalid,
+                );
+            }
+            match ws.store_evidence(&bytes, source_id) {
+                Ok(hash) => {
+                    let result = serde_json::json!({
+                        "brand_id": brand,
+                        "source_id": source_id,
+                        "byte_hash": hash.as_hex(),
+                        "byte_count": bytes.len(),
+                        "replaced": true,
+                        "previous_byte_hash": prev_hash,
+                    });
+                    write_envelope(out, "evidence-import", result, vec![], vec![])
+                }
+                Err(e) => write_error(out, "evidence-import", &e.to_string(), Exit::Invalid),
+            }
         }
+        Ok(None) => match ws.store_evidence(&bytes, source_id) {
+            Ok(hash) => {
+                let result = serde_json::json!({
+                    "brand_id": brand,
+                    "source_id": source_id,
+                    "byte_hash": hash.as_hex(),
+                    "byte_count": bytes.len(),
+                });
+                write_envelope(out, "evidence-import", result, vec![], vec![])
+            }
+            Err(e) => write_error(out, "evidence-import", &e.to_string(), Exit::Invalid),
+        },
         Err(e) => write_error(out, "evidence-import", &e.to_string(), Exit::Invalid),
     }
 }
@@ -2828,7 +2885,7 @@ mod tests {
     fn version_line() {
         let (code, out, _) = run_args(&["--version"]);
         assert_eq!(code, 0);
-        assert_eq!(out, "distinct-rs 0.2.0\n");
+        assert_eq!(out, "distinct-rs 0.3.0\n");
     }
 
     #[test]

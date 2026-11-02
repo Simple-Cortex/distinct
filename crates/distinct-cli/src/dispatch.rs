@@ -26,6 +26,7 @@ Commands:
   gate                    Check readiness for a scope
   verify                  Rehash and verify state (exit 1 when state_valid is false)
   export                  Export a draft kit
+  name check              Offline naming red-flag screen (no clearance)
 
 Global options:
   --workspace <path>      Brand workspace (default: cwd)
@@ -234,6 +235,7 @@ pub const KNOWN_COMMANDS: &[&str] = &[
     "logo-review-packet",
     "color",
     "color-check",
+    "name",
     "ingest",
     "test",
     "patch",

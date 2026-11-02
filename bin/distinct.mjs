@@ -117,6 +117,51 @@ function redactedFlags(args) {
   return out;
 }
 
+// Policy-relevant arguments after the subcommand words, privacy-preserving:
+// flag names are kept; values are kept only for an allowlist. `--scope` keeps
+// its value; `--source-id` is reduced to the marker `insp-*` (inspiration
+// evidence, checked by the reference-intake rule) or `<redacted>`. Every other
+// value and positional (paths, brand ids, codes) becomes `<redacted>`.
+const KEPT_VALUES = new Set(['--scope']);
+function argValue(flag, value) {
+  if (KEPT_VALUES.has(flag)) return value;
+  if (flag === '--source-id') return value.startsWith('insp-') ? 'insp-*' : '<redacted>';
+  return '<redacted>';
+}
+function commandArgs(args) {
+  const names = nativeCommandNames();
+  const norm = (t) => t.replace(/-/g, ' ');
+  const words = [];
+  for (const a of args) {
+    if (a.startsWith('-')) break;
+    words.push(...norm(a).split(' '));
+  }
+  // Subcommand tokens to skip: the longest known command prefix (1-3 words),
+  // counted in original argv tokens (a hyphenated alias is one token).
+  let skipWords = 0;
+  for (let n = Math.min(3, words.length); n >= 1; n--) {
+    if (names.includes(words.slice(0, n).join(' '))) { skipWords = n; break; }
+  }
+  let i = 0;
+  for (let w = 0; w < skipWords && i < args.length; i++) w += norm(args[i]).split(' ').length;
+  const out = [];
+  for (; i < args.length; i++) {
+    const a = args[i];
+    if (a === '--') { out.push('--'); break; }
+    if (a.startsWith('--') && a.includes('=')) {
+      const flag = a.slice(0, a.indexOf('='));
+      out.push(`${flag}=${argValue(flag, a.slice(a.indexOf('=') + 1))}`);
+    } else if (a.startsWith('-')) {
+      out.push(a);
+      const next = args[i + 1];
+      if (next !== undefined && !next.startsWith('-')) { out.push(argValue(a, next)); i++; }
+    } else {
+      out.push('<redacted>');
+    }
+  }
+  return out;
+}
+
 function writeTrace(args, exit, bytesOut, protocol) {
   const file = process.env.DISTINCT_TRACE;
   if (!file) return;
@@ -126,6 +171,7 @@ function writeTrace(args, exit, bytesOut, protocol) {
       host: process.env.DISTINCT_HOST || 'unknown',
       route: process.env.DISTINCT_ROUTE || null,
       command: commandWords(args),
+      args: commandArgs(args),
       args_redacted: redactedFlags(args),
       exit,
       bytes_out: bytesOut,
@@ -144,7 +190,7 @@ function exitWith(code) {
 function emitUnavailable(command) {
   const envelope = {
     protocol_version: PROTOCOL_VERSION,
-    engine_version: '0.2.0',
+    engine_version: '0.3.0',
     execution: { engine: 'node-launcher', command },
     result: null,
     limitations: ['native binary not available'],
@@ -181,7 +227,7 @@ Requires Node >= ${MIN_NODE_MAJOR}.`);
   }
 
   if (args.includes('--version') || args.includes('-V')) {
-    console.log(`distinct launcher 0.2.0`);
+    console.log(`distinct launcher 0.3.0`);
     process.exit(0);
   }
 
