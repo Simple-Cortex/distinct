@@ -12,7 +12,7 @@ Translating the approved platform (essence, attributes, voice) into concrete vis
 - Explicit scope ID.
 
 **Procedure**
-0. **Reference intake (mandatory):** follow `references/inspiration.md`; run `gate --scope direction` and stop on inspiration blockers.
+0. **Reference intake (mandatory):** follow `references/inspiration.md`; run `gate --scope direction` and stop on inspiration and landscape blockers (the landscape from `references/discovery.md` must pass the same gate).
 1. **Extract constraints:** Query the approved platform and voice records. Pull the central idea, 3-5 attributes with "but not" guardrails, tensions, and expression directives.
 2. **Host-guided noun list generation:** Draft 15-25 concrete nouns (advisory target) grouped by category (People, Nature, Places, Objects, Letters). Present to the owner for elimination.
 3. **Define metaphor and expressions:** Complete the sentence "The brand is like..." and list 3-6 drawable expressions (advisory target) of the central idea.
@@ -89,8 +89,9 @@ Generating, inspecting, and systematizing the mark and broader identity (typogra
 - Explicit scope ID.
 
 **Procedure**
+0. **Logo breakdown gate (mandatory):** run `gate --scope logo_intent`; stop while it shows `logo_breakdown_missing` (see "Logos you like" in `references/inspiration.md`). Before drawing candidates, read the breakdown principles.
 1. **Ideation & Sketching (host-guided):** Generate 30-50 rough thumbnails (advisory target) across different nouns and combinations.
-2. **Shortlist & Vectorization (host-guided):** Select 3-15 distinct ideas (advisory target), vectorize with minimal anchor points, and refine optically.
+2. **Shortlist & Vectorization (host-guided):** Select 3-15 distinct ideas (advisory target), vectorize with minimal anchor points, and refine optically. Each candidate's rationale cites the breakdown `transferable_principles` it uses and confirms it avoids every `do_not_copy` item.
 3. **Capture Logo Intent:** Record the approved concept, defining features, intended construction, protected geometry, and target media into a `logo_intent` record.
 4. **Structural Inspection:** Run native SVG inspection on the candidate file to verify XML validity, viewBox, finite coordinates, and element counts.
 5. **Proof Plan & Generation (host-guided):** Plan proofs for whole mark, small sizes (16px, 24px) (advisory defaults), reversals, and real applications. Generate or import actual renders.

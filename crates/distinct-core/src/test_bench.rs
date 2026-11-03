@@ -1,4 +1,4 @@
-//! Test bench: plan, packet, import, summarize (contract §5, WO-11 / D-J).
+//! Test bench: plan, packet, import, summarize (contract §5, D-J).
 //!
 //! Implements the four test commands:
 //! - `test plan` — validate and freeze a test protocol

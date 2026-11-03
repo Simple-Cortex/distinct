@@ -1,4 +1,4 @@
-//! Review packet builder (contract §5–6, WO-11 / D-J).
+//! Review packet builder (contract §5–6, D-J).
 //!
 //! `review-packet --scope <id> --out <path>` freezes inspectable inputs
 //! with the packet privacy filter and excludes builder rationale fields.

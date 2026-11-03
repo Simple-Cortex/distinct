@@ -1,5 +1,5 @@
 //! Integration tests for `logo` / `color` subcommand routing and `logo proof`
-//! profile + `--out` handling (WO-12c). Runs the real `distinct-rs` binary.
+//! profile + `--out` handling. Runs the real `distinct-rs` binary.
 
 use std::fs;
 use std::path::{Path, PathBuf};

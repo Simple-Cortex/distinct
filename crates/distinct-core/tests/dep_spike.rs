@@ -1,4 +1,4 @@
-//! WO-00 dependency spike: functional verification that each pinned crate
+//! Dependency spike: functional verification that each pinned crate
 //! actually works on Rust 1.85.0 offline. These are NOT feature tests — they
 //! prove the dependency can perform the specific capability Distinct needs.
 
@@ -21,7 +21,7 @@ fn jcs_does_not_reject_duplicate_keys() {
     let result = jcs_canonicalize::canonicalize(input);
     // jcs-canonicalize does NOT reject duplicates; it accepts them.
     // This is expected behavior from this crate — Distinct must add its own
-    // duplicate-key rejection layer (recorded for WO-01).
+    // duplicate-key rejection layer.
     assert!(
         result.is_ok(),
         "jcs-canonicalize accepts duplicates (known limitation)"

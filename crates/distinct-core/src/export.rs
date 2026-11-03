@@ -1,4 +1,4 @@
-//! Draft export kit builder (WO-07, design decision D-C).
+//! Draft export kit builder (design decision D-C).
 //!
 //! Exports brand records to a directory structure with a manifest,
 //! excluding restricted/confidential records and quotes without consent.
@@ -20,7 +20,7 @@ pub struct ExportOptions<'a> {
     pub force: bool,
     pub objects: Vec<Value>,
     pub snapshot_hash: Option<&'a str>,
-    /// WO-13: token export format (e.g. "dtcg"). None = no token export.
+    /// Token export format (e.g. "dtcg"). None = no token export.
     pub tokens_format: Option<&'a str>,
 }
 
@@ -32,7 +32,7 @@ pub enum ExportResult {
         manifest: Value,
         records_written: usize,
         excluded: usize,
-        /// WO-13: omitted token fields `{field, record_id, reason}` (empty when tokens not requested).
+        /// Omitted token fields `{field, record_id, reason}` (empty when tokens not requested).
         tokens_omitted: Vec<Value>,
     },
     /// `production_ready` was requested — refused.
@@ -262,7 +262,7 @@ pub fn run_export(opts: &ExportOptions<'_>) -> ExportResult {
         _ => {}
     }
 
-    // WO-13: token export (DTCG) and GUIDELINES.md.
+    // Token export (DTCG) and GUIDELINES.md.
     let mut tokens_omitted: Vec<Value> = Vec::new();
     if let Some(fmt) = opts.tokens_format {
         if fmt != "dtcg" {

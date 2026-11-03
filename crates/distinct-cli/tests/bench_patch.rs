@@ -1,4 +1,4 @@
-//! WO-11 integration tests: test bench, patch, review-packet.
+//! Integration tests: test bench, patch, review-packet.
 //!
 //! These tests run the real binary against a temporary workspace.
 
@@ -683,7 +683,7 @@ fn patch_rejects_duplicate_keys() {
     let _ = std::fs::remove_dir_all(&ws);
 }
 
-// --- WO-11b: STATE consistency after mutating commands ---
+// --- STATE consistency after mutating commands ---
 
 #[test]
 fn test_plan_verify_clean() {
@@ -886,7 +886,7 @@ fn patch_apply_expected_state_mismatch() {
     let _ = std::fs::remove_dir_all(&ws);
 }
 
-// --- WO-11b: security — governance kinds rejected by patch ---
+// --- Security — governance kinds rejected by patch ---
 
 #[test]
 fn patch_rejects_governance_kind_add_decision() {

@@ -1,6 +1,6 @@
 [package]
 name = "distinct-core"
-description = "Distinct core crate (skeleton; features arrive with WO-01 and later)."
+description = "Distinct core crate (skeleton; features arrive later)."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,7 +10,7 @@ authors.workspace = true
 publish = false
 
 [dependencies]
-# WO-00 dependency spike — verify each builds on 1.85.0 offline.
+# Dependency spike — verify each builds on 1.85.0 offline.
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 sha2 = "0.10"

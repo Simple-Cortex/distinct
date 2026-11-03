@@ -1,6 +1,6 @@
 [package]
 name = "distinct-assets"
-description = "Distinct assets crate (skeleton; features arrive with WO-01 and later)."
+description = "Distinct assets crate (skeleton; features arrive later)."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -10,9 +10,9 @@ authors.workspace = true
 publish = false
 
 [dependencies]
-# WO-00 dependency spike — resvg for SVG rendering (WO-06).
+# Dependency spike — resvg for SVG rendering.
 resvg = { version = "0.49", default-features = false }
-# D-E: SVG inspection (WO-06). quick-xml 0.41 already pinned in workspace.
+# D-E: SVG inspection. quick-xml 0.41 already pinned in workspace.
 quick-xml = "0.41"
 distinct-core = { path = "../distinct-core" }
 serde = { version = "1", features = ["derive"] }

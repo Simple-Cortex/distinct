@@ -1,6 +1,6 @@
 //! Command dispatch for `distinct-rs`.
 //!
-//! WO-02 adds the full command matrix with arg parsing, brand validation,
+//! Adds the full command matrix with arg parsing, brand validation,
 //! and the standard JSON envelope. Commands that need the store delegate
 //! to distinct-core; commands that need the filesystem use workspace paths.
 
@@ -349,12 +349,13 @@ fn cmd_gate<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E) -> Ex
                 Err(e) => return write_error(out, "gate", &e.to_string(), Exit::Invalid),
             };
             let approval = distinct_core::governance::owner_approval_blockers(&objects, scope);
-            let inspiration =
-                distinct_core::governance::inspiration_blockers(&objects, &evidence_ids, scope);
+            use distinct_core::governance as gov;
+            let mut inspiration = gov::inspiration_blockers(&objects, &evidence_ids, scope);
+            inspiration.extend(gov::landscape_blockers(&objects, &evidence_ids, scope));
+            inspiration.extend(gov::logo_breakdown_blockers(&objects, &evidence_ids, scope));
             let mut warnings = verdict.warnings;
-            warnings.extend(distinct_core::governance::inspiration_advisories(
-                &objects, scope,
-            ));
+            warnings.extend(gov::inspiration_advisories(&objects, scope));
+            warnings.extend(gov::landscape_advisories(&objects, scope));
             let ready = verdict.ready && approval.is_empty() && inspiration.is_empty();
             let mut blockers: Vec<serde_json::Value> =
                 verdict.blockers.into_iter().map(Into::into).collect();
@@ -418,7 +419,7 @@ fn cmd_verify<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E) -> 
         "blockers": all_blockers,
         "stale": gov.stale,
     });
-    // WO-15: exit 1 when state_valid is false.
+    // Exit 1 when state_valid is false.
     let _ = write_envelope(out, "verify", result, vec![], vec![]);
     if state_valid {
         Exit::Ok
@@ -498,7 +499,7 @@ fn cmd_record_import<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut
         return write_error(out, "record-import", "brand not initialized", Exit::Invalid);
     }
 
-    // WO-15: reject governance kinds — use the dedicated command instead.
+    // Reject governance kinds — use the dedicated command instead.
     if let Some(kind_str) = record["kind"].as_str() {
         if let Ok(k) =
             serde_json::from_str::<distinct_core::record::RecordKind>(&format!("\"{kind_str}\""))
@@ -518,7 +519,7 @@ fn cmd_record_import<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut
 
     match ws.store_object(&record) {
         Ok(hash) => {
-            // WO-15: update STATE so verify stays clean after mutation.
+            // Update STATE so verify stays clean after mutation.
             let mut state = match ws.read_state() {
                 Ok(s) => s,
                 Err(e) => {
@@ -718,7 +719,7 @@ fn cmd_packet<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E) -> 
     };
     let scope: Vec<String> = scope_str.split(',').map(|s| s.trim().to_string()).collect();
 
-    // WO-15: reject unknown scope field names.
+    // Reject unknown scope field names.
     let unknown: Vec<&str> = scope
         .iter()
         .filter(|f| !distinct_core::packet::ANCHOR_KEYS.contains(&f.as_str()))
@@ -961,7 +962,7 @@ fn cmd_export<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E) -> 
 
     let force = args.rest.iter().any(|a| a == "--force");
 
-    // WO-13: --tokens <format>
+    // 3: --tokens <format>
     let tokens_format = args
         .rest
         .iter()
@@ -1141,7 +1142,7 @@ fn cmd_governance_import<O: Write, E: Write>(
 
     match ws.store_object(&record) {
         Ok(hash) => {
-            // WO-09: update STATE governance index and content snapshot so verify stays clean.
+            // Update STATE governance index and content snapshot so verify stays clean.
             let mut state = match ws.read_state() {
                 Ok(s) => s,
                 Err(e) => {
@@ -1245,7 +1246,7 @@ fn cmd_logo_inspect<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut 
             // Store the finding record
             match ws.store_object(&record) {
                 Ok(hash) => {
-                    // WO-15: update STATE so verify stays clean after mutation.
+                    // Update STATE so verify stays clean after mutation.
                     let mut state = match ws.read_state() {
                         Ok(s) => s,
                         Err(e) => {
@@ -1949,7 +1950,7 @@ fn write_proof_record<O: Write>(
 
     match ws.store_object(&record) {
         Ok(hash) => {
-            // WO-15: update STATE so verify stays clean after mutation.
+            // Update STATE so verify stays clean after mutation.
             let mut state = match ws.read_state() {
                 Ok(s) => s,
                 Err(e) => {
@@ -2085,7 +2086,7 @@ fn cmd_color_check<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E
         results.push(colour::check_pair(fg, bg));
     }
 
-    // WO-15: zero valid pairs is an error.
+    // Zero valid pairs is an error.
     if results.is_empty() {
         return write_error(
             out,
@@ -2118,7 +2119,7 @@ fn cmd_color_check<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E
 
     match ws.store_object(&record) {
         Ok(hash) => {
-            // WO-15: update STATE so verify stays clean after mutation.
+            // Update STATE so verify stays clean after mutation.
             let mut state = match ws.read_state() {
                 Ok(s) => s,
                 Err(e) => {
@@ -2362,7 +2363,7 @@ fn cmd_test_plan<O: Write>(
 
     match ws.store_object(&record) {
         Ok(hash) => {
-            // WO-11b: update STATE so verify stays clean after mutation.
+            // Update STATE so verify stays clean after mutation.
             let mut state = match ws.read_state() {
                 Ok(s) => s,
                 Err(e) => return write_error(out, "test-plan", &e.to_string(), Exit::Invalid),
@@ -2503,7 +2504,7 @@ fn cmd_test_import<O: Write>(
         return write_error(out, "test-import", &e, Exit::Invalid);
     }
 
-    // WO-15: validate frozen_plan_ref against existing test_plan records.
+    // Validate frozen_plan_ref against existing test_plan records.
     let plan_ref = data["frozen_plan_ref"].as_str().unwrap_or("");
     if !plan_ref.is_empty() {
         let plans = match ws.list_objects(Some(distinct_core::record::RecordKind::TestPlan)) {
@@ -2540,7 +2541,7 @@ fn cmd_test_import<O: Write>(
 
     match ws.store_object(&record) {
         Ok(hash) => {
-            // WO-11b: update STATE so verify stays clean after mutation.
+            // Update STATE so verify stays clean after mutation.
             let mut state = match ws.read_state() {
                 Ok(s) => s,
                 Err(e) => return write_error(out, "test-import", &e.to_string(), Exit::Invalid),
@@ -2712,7 +2713,7 @@ fn cmd_patch<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E) -> E
     } else {
         // --apply: never approves anything, only stores records.
 
-        // WO-11b: --expected-state CAS guard.
+        // B: --expected-state CAS guard.
         let expected_state = args
             .rest
             .iter()
@@ -2745,7 +2746,7 @@ fn cmd_patch<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E) -> E
 
         match patch::apply_patch(&plan, &ws, &distinct_core::store::chrono_now()) {
             Ok(applied) => {
-                // WO-11b: update STATE so verify stays clean after mutation.
+                // Update STATE so verify stays clean after mutation.
                 let mut state = match ws.read_state() {
                     Ok(s) => s,
                     Err(e) => return write_error(out, "patch", &e.to_string(), Exit::Invalid),
@@ -2885,7 +2886,7 @@ mod tests {
     fn version_line() {
         let (code, out, _) = run_args(&["--version"]);
         assert_eq!(code, 0);
-        assert_eq!(out, "distinct-rs 0.3.0\n");
+        assert_eq!(out, "distinct-rs 0.4.0\n");
     }
 
     #[test]

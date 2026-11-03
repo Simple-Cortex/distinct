@@ -1,4 +1,4 @@
-//! Governance reconciliation (contract §9, WO-05).
+//! Governance reconciliation (contract §9).
 //!
 //! `reconcile_governance()` recomputes content and governance hashes from
 //! stored objects and compares them with STATE.json. It also checks for
@@ -78,7 +78,7 @@ pub fn reconcile_governance(ws: &BrandWorkspace) -> Result<ReadinessVerdict, Str
     // Check for stale dependencies.
     check_stale_dependencies(&content_objects, &content_snapshot, &mut stale);
 
-    // WO-10b: check for stale evidence references (forgotten evidence).
+    // Check for stale evidence references (forgotten evidence).
     check_stale_evidence(&content_objects, &all_objects, &mut stale);
 
     let ready = blockers.is_empty();
@@ -329,6 +329,19 @@ fn str_items(v: &Value) -> impl Iterator<Item = &str> {
     v.as_array().into_iter().flatten().filter_map(Value::as_str)
 }
 
+/// True when `v` is an array holding at least one non-blank string.
+fn has_text(v: &Value) -> bool {
+    str_items(v).any(|s| !s.trim().is_empty())
+}
+
+fn process_sources(reference: &Value) -> Vec<&Value> {
+    reference["process_sources"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .collect()
+}
+
 /// Inspiration-board blockers for scopes covering `direction` (`direction`,
 /// `deliver`, and the unscoped default); empty for every other scope.
 ///
@@ -336,7 +349,10 @@ fn str_items(v: &Value) -> impl Iterator<Item = &str> {
 /// - `inspiration_unseen`: no reference is `fetched` with a resolving evidence
 ///   id and a non-empty observation.
 /// - `inspiration_evidence_dangling`: a `fetched` reference cites an evidence
-///   id absent from `evidence_ids` (for example forgotten). Carries `ref_id`.
+///   id (its own or one of its `process_sources`) absent from `evidence_ids`
+///   (for example forgotten). Carries `ref_id`.
+/// - `agency_process_unread`: a `fetched` reference with `kind == "agency"`
+///   has no process source with a resolving evidence id and a takeaway.
 #[must_use]
 pub fn inspiration_blockers(
     objects: &[Value],
@@ -360,9 +376,24 @@ pub fn inspiration_blockers(
             let resolves = ids.iter().any(|id| evidence_ids.contains(*id));
             let observed = str_items(&r["observations"]).any(|o| !o.trim().is_empty());
             any_seen |= resolves && observed;
-            if ids.iter().any(|id| !evidence_ids.contains(*id)) {
+            let sources = process_sources(r);
+            let process_dangling = sources
+                .iter()
+                .any(|s| str_items(&s["evidence_ids"]).any(|id| !evidence_ids.contains(id)));
+            if process_dangling || ids.iter().any(|id| !evidence_ids.contains(*id)) {
                 blockers.push(serde_json::json!({
                     "code": "inspiration_evidence_dangling",
+                    "kind": board["kind"], "id": board["id"], "ref_id": r["ref_id"],
+                }));
+            }
+            if r["kind"].as_str() == Some("agency")
+                && !sources.iter().any(|s| {
+                    str_items(&s["evidence_ids"]).any(|id| evidence_ids.contains(id))
+                        && has_text(&s["takeaways"])
+                })
+            {
+                blockers.push(serde_json::json!({
+                    "code": "agency_process_unread",
                     "kind": board["kind"], "id": board["id"], "ref_id": r["ref_id"],
                 }));
             }
@@ -401,6 +432,183 @@ pub fn inspiration_advisories(objects: &[Value], scope: &str) -> Vec<String> {
                 .collect::<Vec<_>>()
         })
         .collect()
+}
+
+/// Current `research_item` records of type `landscape`.
+fn landscapes(objects: &[Value]) -> Vec<&Value> {
+    current_revisions(objects)
+        .into_iter()
+        .filter(|r| {
+            r["kind"].as_str() == Some("research_item")
+                && r["data"]["type"].as_str() == Some("landscape")
+        })
+        .collect()
+}
+
+fn competitors(landscape: &Value) -> impl Iterator<Item = &Value> {
+    landscape["data"]["competitors"]
+        .as_array()
+        .into_iter()
+        .flatten()
+}
+
+/// The non-empty `not_applicable_reason` of a landscape, if any.
+fn not_applicable_reason(landscape: &Value) -> Option<&str> {
+    landscape["data"]["not_applicable_reason"]
+        .as_str()
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+}
+
+/// Landscape blockers for scopes covering `direction`; empty otherwise.
+///
+/// - `landscape_missing`: no current landscape research item.
+/// - `landscape_unseen`: no competitor is `fetched` with a resolving evidence
+///   id and a non-empty observation.
+/// - `landscape_evidence_dangling`: a `fetched` competitor cites an evidence
+///   id absent from `evidence_ids`. Carries `competitor_id`.
+///
+/// A landscape with a non-empty `not_applicable_reason` passes through.
+#[must_use]
+pub fn landscape_blockers(
+    objects: &[Value],
+    evidence_ids: &BTreeSet<String>,
+    scope: &str,
+) -> Vec<Value> {
+    if !requires_inspiration(scope) {
+        return Vec::new();
+    }
+    let items = landscapes(objects);
+    if items.is_empty() {
+        return vec![serde_json::json!({
+            "code": "landscape_missing", "kind": "research_item", "id": "landscape"
+        })];
+    }
+    // Not-applicable passes only when every current landscape says so: one
+    // n/a record must not switch off evidence checks for a real landscape.
+    if items.iter().all(|l| not_applicable_reason(l).is_some()) {
+        return Vec::new();
+    }
+    let mut blockers = Vec::new();
+    let mut any_seen = false;
+    for item in &items {
+        for c in competitors(item).filter(|c| c["status"].as_str() == Some("fetched")) {
+            let ids: Vec<&str> = str_items(&c["evidence_ids"]).collect();
+            let resolves = ids.iter().any(|id| evidence_ids.contains(*id));
+            any_seen |= resolves && has_text(&c["observations"]);
+            if ids.iter().any(|id| !evidence_ids.contains(*id)) {
+                blockers.push(serde_json::json!({
+                    "code": "landscape_evidence_dangling",
+                    "kind": item["kind"], "id": item["id"],
+                    "competitor_id": c["competitor_id"],
+                }));
+            }
+        }
+    }
+    if !any_seen {
+        blockers.push(serde_json::json!({
+            "code": "landscape_unseen", "kind": "research_item", "id": items[0]["id"],
+        }));
+    }
+    blockers
+}
+
+/// Landscape advisories (never gates): `landscape_not_applicable`,
+/// `landscape_unreachable` per unreachable competitor, and `landscape_thin`
+/// when fewer than 3 competitors are fetched. Same scopes as
+/// [`landscape_blockers`].
+#[must_use]
+pub fn landscape_advisories(objects: &[Value], scope: &str) -> Vec<String> {
+    if !requires_inspiration(scope) {
+        return Vec::new();
+    }
+    let items = landscapes(objects);
+    if !items.is_empty() && items.iter().all(|l| not_applicable_reason(l).is_some()) {
+        let reason = not_applicable_reason(items[0]).unwrap_or_default();
+        return vec![format!("landscape_not_applicable: {reason}")];
+    }
+    if items.is_empty() {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    let mut fetched = 0usize;
+    for item in &items {
+        for c in competitors(item) {
+            match c["status"].as_str() {
+                Some("fetched") => fetched += 1,
+                Some("unreachable") => out.push(format!(
+                    "landscape_unreachable: research_item/{} competitor {} ({})",
+                    item["id"].as_str().unwrap_or("?"),
+                    c["competitor_id"].as_str().unwrap_or("?"),
+                    c["unreachable_reason"]
+                        .as_str()
+                        .unwrap_or("no reason given"),
+                )),
+                _ => {}
+            }
+        }
+    }
+    if fetched < 3 {
+        out.push(format!(
+            "landscape_thin: {fetched} competitor(s) fetched; 3 or more is the usual minimum"
+        ));
+    }
+    out
+}
+
+/// Logo-breakdown blockers for scope `logo_intent`; empty for other scopes.
+///
+/// - `inspiration_missing`: no current inspiration board.
+/// - `logo_breakdown_missing`: no board breakdown has a resolving evidence
+///   id, at least 4 non-empty facets, a transferable principle and a
+///   `do_not_copy` entry.
+/// - `inspiration_evidence_dangling`: a breakdown cites an evidence id absent
+///   from `evidence_ids`. Carries `logo_id`.
+#[must_use]
+pub fn logo_breakdown_blockers(
+    objects: &[Value],
+    evidence_ids: &BTreeSet<String>,
+    scope: &str,
+) -> Vec<Value> {
+    if scope != "logo_intent" {
+        return Vec::new();
+    }
+    let boards = inspiration_boards(objects);
+    if boards.is_empty() {
+        return vec![serde_json::json!({
+            "code": "inspiration_missing", "kind": "source", "id": "inspiration-board"
+        })];
+    }
+    let mut blockers = Vec::new();
+    let mut any_valid = false;
+    for board in &boards {
+        let breakdowns = board["data"]["logo_breakdowns"].as_array();
+        for b in breakdowns.into_iter().flatten() {
+            let ids: Vec<&str> = str_items(&b["evidence_ids"]).collect();
+            let facets = b["facets"].as_object().map_or(0, |m| {
+                m.values()
+                    .filter_map(Value::as_str)
+                    .filter(|s| !s.trim().is_empty())
+                    .count()
+            });
+            any_valid |= ids.iter().any(|id| evidence_ids.contains(*id))
+                && facets >= 4
+                && has_text(&b["transferable_principles"])
+                && has_text(&b["do_not_copy"]);
+            if ids.iter().any(|id| !evidence_ids.contains(*id)) {
+                blockers.push(serde_json::json!({
+                    "code": "inspiration_evidence_dangling",
+                    "kind": board["kind"], "id": board["id"], "logo_id": b["logo_id"],
+                }));
+            }
+        }
+    }
+    if !any_valid {
+        blockers.push(serde_json::json!({
+            "code": "logo_breakdown_missing", "kind": "source", "id": boards[0]["id"],
+        }));
+    }
+    blockers
 }
 
 /// Select the current revision of each `(kind, id)` from all stored
@@ -549,7 +757,7 @@ fn check_stale_dependencies(content: &[&Value], snapshot: &Value, stale: &mut Ve
     }
 }
 
-/// WO-10b: detect content records that reference forgotten evidence.
+/// Detect content records that reference forgotten evidence.
 ///
 /// Scans all objects for tombstone records (data.type == "tombstone") and
 /// collects the forgotten evidence IDs. Then checks if any content record

@@ -1,4 +1,4 @@
-//! Integration tests for `name check` (WO-25). Runs the real `distinct-rs` binary.
+//! Integration tests for `name check`. Runs the real `distinct-rs` binary.
 
 use std::fs;
 use std::path::PathBuf;

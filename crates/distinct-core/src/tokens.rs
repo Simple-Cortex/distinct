@@ -1,4 +1,4 @@
-//! W3C DTCG token export and deterministic GUIDELINES.md (WO-13, D-H).
+//! W3C DTCG token export and deterministic GUIDELINES.md (D-H).
 //!
 //! Extracts platform/visual-system fields from records and produces
 //! `tokens.json` in W3C Design Token Community Group format. A field is

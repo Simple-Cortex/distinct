@@ -1,6 +1,6 @@
 //! CLI command dispatch for `distinct-rs` (contract section 5).
 //!
-//! WO-02 adds the full command matrix: init, status, capabilities,
+//! Adds the full command matrix: init, status, capabilities,
 //! record import, evidence import, query, packet, gate, verify, export.
 //! Each command validates input, operates on the workspace, and returns
 //! the standard JSON envelope.

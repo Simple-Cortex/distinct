@@ -61,7 +61,9 @@ Notes: `--scope` names come from a fixed vocabulary: `platform_fields`(platform)
 
 ### `gate`
 `D gate G [--scope <name>]` — reconcile STATE hashes; flag missing check results, stale dependencies, forgotten evidence, missing owner approval. Mutates: no. Exit 0 always; read `ready`, `blockers[]`, `stale[]`.
-Scopes `direction`, `deliver` and default also need an inspiration board (`source` with `data.type` `inspiration_board`; shape in `references/inspiration.md`). Blockers: `inspiration_missing`, `inspiration_unseen`, `inspiration_evidence_dangling` (+`ref_id`). Warning: `inspiration_unreachable`.
+Scopes `direction`, `deliver` and default also need an inspiration board (`source` with `data.type` `inspiration_board`; shape in `references/inspiration.md`). Blockers: `inspiration_missing`, `inspiration_unseen`, `inspiration_evidence_dangling` (+`ref_id`, or `logo_id` for breakdowns), `agency_process_unread` (+`ref_id`: a fetched `kind: agency` reference without a process source that has resolving evidence and a takeaway). Warning: `inspiration_unreachable`.
+Those scopes also need a landscape (`research_item` id `landscape`, `data.type` `landscape`; shape in `references/discovery.md`). Blockers: `landscape_missing`, `landscape_unseen`, `landscape_evidence_dangling` (+`competitor_id`). A non-empty `not_applicable_reason` passes with warning `landscape_not_applicable`. Warnings: `landscape_unreachable`, `landscape_thin` (fewer than 3 fetched).
+Scope `logo_intent` also needs logo breakdowns on the inspiration board (shape in `references/inspiration.md`). Blockers: `inspiration_missing`, `logo_breakdown_missing`, `inspiration_evidence_dangling` (+`logo_id`).
 Notes: `ready` needs zero blockers. Each in-scope current record needs an attested owner decision on that revision, else blocker `{code:missing_owner_approval|stale_owner_approval,kind,id}`. Scope: a content kind checks that kind; `deliver` or none checks platform, voice, direction, system; other names check none. A `check_plan` lacking a `check_result` blocks.
 
 ### `verify`

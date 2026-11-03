@@ -1,6 +1,6 @@
 //! Distinct core: records, hashes, schemas, and state.
 //!
-//! WO-01 adds closed schemas, domain-separated hashing, duplicate-key
+//! Adds closed schemas, domain-separated hashing, duplicate-key
 //! rejection, ID validation, and the record envelope types.
 
 pub mod dup_keys;

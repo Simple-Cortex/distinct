@@ -1,4 +1,4 @@
-// WO-14: Size-budget test for skill payload files.
+// Size-budget test for skill payload files.
 // Root SKILL.md ≤ 6144 B; each references/*.md ≤ 16384 B; each skills/*/SKILL.md ≤ 1024 B.
 // Oversize files must be trimmed or split.
 import { test } from 'node:test';

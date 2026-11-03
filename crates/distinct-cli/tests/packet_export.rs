@@ -1,4 +1,4 @@
-//! Integration tests for `packet` and `export` commands (WO-04 / WO-07).
+//! Integration tests for `packet` and `export` commands.
 //!
 //! Each test runs the real `distinct-rs` binary against a temporary workspace.
 
@@ -1034,7 +1034,7 @@ fn gate_ready_when_no_blockers() {
     });
     import_record(&dir, "acme", &project);
 
-    // WO-21: the default scope covers `direction`, so it needs a valid board.
+    // The default scope covers `direction`, so it needs a valid board.
     let img = dir.join("insp.png");
     fs::write(&img, b"fake image bytes").unwrap();
     let o = run(&[
@@ -1070,6 +1070,44 @@ fn gate_ready_when_no_blockers() {
         }),
     );
 
+    // The default scope also needs a landscape with a fetched competitor.
+    let land = dir.join("land.png");
+    fs::write(&land, b"fake competitor screenshot").unwrap();
+    let o = run(&[
+        "evidence-import",
+        "--brand",
+        "acme",
+        "--workspace",
+        &dir.to_string_lossy(),
+        "--file",
+        &land.to_string_lossy(),
+        "--source-id",
+        "land-c1-1",
+    ]);
+    assert_eq!(exit_code(&o), 0, "evidence-import failed: {}", stdout(&o));
+    import_record(
+        &dir,
+        "acme",
+        &serde_json::json!({
+            "schema_version": "1.0.0",
+            "kind": "research_item",
+            "id": "landscape",
+            "brand_id": "acme",
+            "privacy": "internal",
+            "created_at": "2026-10-27T00:00:00Z",
+            "created_by": {"kind": "agent", "id": "distinct-rs"},
+            "dependencies": [],
+            "limitations": [],
+            "data": {"type": "landscape", "not_applicable_reason": null,
+                "competitors": [{"competitor_id": "c1", "name": "Rival",
+                    "url": "https://example.com", "depth": "deep", "status": "fetched",
+                    "evidence_ids": ["land-c1-1"],
+                    "observations": ["navy and gold, serif wordmark"],
+                    "unreachable_reason": null}],
+                "codes_to_keep": [], "codes_to_break": [], "whitespace": []}
+        }),
+    );
+
     // No check plans → no missing results → ready.
     let o = run(&[
         "gate",
@@ -1087,7 +1125,7 @@ fn gate_ready_when_no_blockers() {
     fs::remove_dir_all(&dir).ok();
 }
 
-// ── WO-09: export-kind differentiation ───────────────────────────────
+// ── export-kind differentiation ───────────────────────────────
 
 #[test]
 fn export_concept_only_labels_manifest_and_records() {
@@ -1253,7 +1291,7 @@ fn export_specification_only_excludes_binary_proof() {
     fs::remove_dir_all(&dir).ok();
 }
 
-// ── WO-09: governance commands update STATE ──────────────────────────
+// ── governance commands update STATE ──────────────────────────
 
 #[test]
 fn verify_clean_after_governance_import() {
@@ -1338,7 +1376,7 @@ fn verify_clean_after_decision() {
     fs::remove_dir_all(&dir).ok();
 }
 
-// ── WO-09: dup_keys enforced on all JSON input paths ─────────────────
+// ── dup_keys enforced on all JSON input paths ─────────────────
 
 #[test]
 fn dup_keys_rejected_on_record_import() {
@@ -1427,7 +1465,7 @@ fn dup_keys_rejected_on_decision() {
     fs::remove_dir_all(&dir).ok();
 }
 
-// ── WO-13: export --tokens dtcg ──────────────────────────────────────
+// ── export --tokens dtcg ──────────────────────────────────────
 
 #[test]
 fn export_tokens_dtcg_writes_files() {

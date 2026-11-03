@@ -433,6 +433,56 @@ fn import_valid_board(f: &Fixture) {
         &[],
     );
     assert_eq!(code_of(&o), 0, "{}", out_s(&o));
+    import_valid_landscape(f);
+}
+
+/// A fetched competitor so `direction`-covering scopes pass the landscape rule.
+fn import_valid_landscape(f: &Fixture) {
+    let img = f.dir.join("land.png");
+    fs::write(&img, b"fake competitor screenshot").unwrap();
+    let o = run_env(
+        &[
+            "evidence-import",
+            "--brand",
+            "acme",
+            "--workspace",
+            &f.ws,
+            "--file",
+            &img.to_string_lossy(),
+            "--source-id",
+            "land-c1-1",
+        ],
+        &[],
+    );
+    assert_eq!(code_of(&o), 0, "{}", out_s(&o));
+    let rec = json!({
+        "schema_version": "1.0.0", "kind": "research_item", "id": "landscape",
+        "brand_id": "acme", "privacy": "internal",
+        "created_at": "2026-10-27T00:00:00Z",
+        "created_by": {"kind": "agent", "id": "distinct-rs"},
+        "dependencies": [], "limitations": [],
+        "data": {"type": "landscape", "not_applicable_reason": null,
+            "competitors": [{"competitor_id": "c1", "name": "Rival",
+                "url": "https://example.com", "depth": "deep", "status": "fetched",
+                "evidence_ids": ["land-c1-1"],
+                "observations": ["navy and gold, serif wordmark"],
+                "unreachable_reason": null}]}
+    });
+    let rp = f.dir.join("landscape.json");
+    fs::write(&rp, rec.to_string()).unwrap();
+    let o = run_env(
+        &[
+            "record-import",
+            "--brand",
+            "acme",
+            "--workspace",
+            &f.ws,
+            "--file",
+            &rp.to_string_lossy(),
+        ],
+        &[],
+    );
+    assert_eq!(code_of(&o), 0, "{}", out_s(&o));
 }
 
 #[test]

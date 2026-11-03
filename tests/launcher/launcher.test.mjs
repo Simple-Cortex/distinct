@@ -36,7 +36,7 @@ describe('launcher', () => {
     assert.match(r.stdout, /brand skill launcher/);
   });
 
-  // WO-07: missing_native_help_control — help and version work even when
+  // missing_native_help_control — help and version work even when
   // DISTINCT_RS_BIN points to a nonexistent path.
   it('missing_native_help_control', () => {
     const r = run(['--help'], { DISTINCT_RS_BIN: '/nonexistent/distinct-rs' });
@@ -48,7 +48,7 @@ describe('launcher', () => {
     assert.match(v.stdout, /distinct launcher/);
   });
 
-  // WO-07: protocol_mismatch — a fake binary that returns wrong protocol
+  // protocol_mismatch — a fake binary that returns wrong protocol
   // should cause the launcher to exit 2 with an unavailable envelope.
   it('protocol_mismatch', () => {
     const fakeBinDir = mkdtempSync(join(tmpdir(), 'distinct-fake-'));
@@ -64,7 +64,7 @@ describe('launcher', () => {
     assert.match(envelope.error, /not found|protocol mismatch/i);
   });
 
-  // WO-07: outside_cwd_skill_resolution — launcher works from an unrelated cwd.
+  // outside_cwd_skill_resolution — launcher works from an unrelated cwd.
   it('outside_cwd_skill_resolution', () => {
     const unrelatedDir = mkdtempSync(join(tmpdir(), 'distinct-cwd-'));
     const r = run(['--help'], {}, unrelatedDir);
@@ -96,7 +96,7 @@ describe('launcher', () => {
     assert.ok(major >= 20, 'test requires Node 20+');
   });
 
-  // WO-09: WO-00 control — missing_toolchain_is_blocked.
+  // Control — missing_toolchain_is_blocked.
   // Launcher with no binary → exit 2 structured envelope.
   it('missing_toolchain_is_blocked', () => {
     const r = run(['status', '--brand', 'acme'], {
@@ -108,7 +108,7 @@ describe('launcher', () => {
     assert.ok(envelope.error, 'should have error field');
   });
 
-  // WO-09: WO-00 control — unsupported_node_rejected.
+  // Control — unsupported_node_rejected.
   // The install script checks Node version at runtime.
   it('unsupported_node_rejected', () => {
     // We can't easily run Node < 20 in this test, but we verify the install

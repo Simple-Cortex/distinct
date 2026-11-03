@@ -1,4 +1,4 @@
-//! Bounded task packet builder (contract §6, WO-04).
+//! Bounded task packet builder (contract §6).
 //!
 //! A packet is a self-contained JSON document that conveys brand context
 //! to an external consumer within a fixed byte budget.

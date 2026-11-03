@@ -29,6 +29,7 @@ node <skill-dir>/bin/distinct.mjs packet --task review --scope concept,system --
 Present the work in two stages. 
 - **Idea stage:** Show marks in black and white only, labeled with their core nouns or rationale. No color, typography, or mockups. 
 - **System stage:** Show the top 2-3 finalists in context (applications, color, typography).
+- **Plagiarism check:** Check each identity candidate against the inspiration board's `do_not_copy` entries before presenting it.
 
 Ask decision-makers to review privately before group discussion. Limit your discovery questions to a maximum of three per batch to avoid leading the room:
 1. "Does this concept express the central idea and attributes defined in our platform?"

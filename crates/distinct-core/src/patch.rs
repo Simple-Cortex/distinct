@@ -1,4 +1,4 @@
-//! Typed patch operations for content records (contract §5, WO-11 / D-J).
+//! Typed patch operations for content records (contract §5, D-J).
 //!
 //! `patch --plan <file> --dry-run|--apply` applies a list of typed
 //! add/replace/remove operations with exact parent, scope, and impact
@@ -309,7 +309,7 @@ pub fn apply_patch(
                 data,
                 ..
             } => {
-                // WO-15: validate parent_hash matches the current content hash.
+                // Validate parent_hash matches the current content hash.
                 let objects = ws.list_objects(None)?;
                 let current = head_revision(&objects, kind, id);
                 match current {
@@ -328,7 +328,7 @@ pub fn apply_patch(
                         )));
                     }
                 }
-                // WO-15: preserve the original record's privacy.
+                // Preserve the original record's privacy.
                 let original_privacy = current
                     .and_then(|r| r["privacy"].as_str())
                     .unwrap_or("internal");
@@ -359,7 +359,7 @@ pub fn apply_patch(
                 parent_hash,
                 ..
             } => {
-                // WO-15: validate parent_hash matches the current content hash.
+                // Validate parent_hash matches the current content hash.
                 let objects = ws.list_objects(None)?;
                 let current = head_revision(&objects, kind, id);
                 match current {

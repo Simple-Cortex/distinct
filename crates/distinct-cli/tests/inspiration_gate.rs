@@ -1,4 +1,4 @@
-//! WO-21: the gate refuses `direction`-covering scopes until an inspiration
+//! The gate refuses `direction`-covering scopes until an inspiration
 //! board holds at least one fetched, observed reference with live evidence.
 
 use serde_json::{json, Value};
@@ -76,6 +76,36 @@ fn import_board(dir: &Path, references: &Value) {
     });
     let p = dir.join("board.json");
     fs::write(&p, board.to_string()).unwrap();
+    let o = run(&[
+        "record-import",
+        "--brand",
+        "acme",
+        "--workspace",
+        &dir.to_string_lossy(),
+        "--file",
+        &p.to_string_lossy(),
+    ]);
+    assert_eq!(code_of(&o), 0, "{}", out_s(&o));
+}
+
+/// A fetched competitor so the landscape rule does not block `ready`.
+fn import_landscape(dir: &Path) {
+    add_evidence(dir, "land-c1-1");
+    let rec = json!({
+        "schema_version": "1.0.0", "kind": "research_item", "id": "landscape",
+        "brand_id": "acme", "privacy": "internal",
+        "created_at": "2026-10-27T00:00:00Z",
+        "created_by": {"kind": "agent", "id": "distinct-rs"},
+        "dependencies": [], "limitations": [],
+        "data": {"type": "landscape", "not_applicable_reason": null,
+            "competitors": [{"competitor_id": "c1", "name": "Rival",
+                "url": "https://example.com", "depth": "deep", "status": "fetched",
+                "evidence_ids": ["land-c1-1"],
+                "observations": ["navy and gold, serif wordmark"],
+                "unreachable_reason": null}]}
+    });
+    let p = dir.join("landscape.json");
+    fs::write(&p, rec.to_string()).unwrap();
     let o = run(&[
         "record-import",
         "--brand",
@@ -213,6 +243,7 @@ fn valid_board_has_no_inspiration_blockers() {
         &dir,
         &json!([fetched("r1", &["insp-r1"]), unreachable_ref("r2")]),
     );
+    import_landscape(&dir);
     for scope in ["direction", "deliver", "default"] {
         let r = gate(&dir, scope);
         assert!(codes(&r).is_empty(), "scope {scope}: {r}");

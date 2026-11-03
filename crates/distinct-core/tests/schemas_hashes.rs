@@ -1,4 +1,4 @@
-//! WO-01 integration tests: schemas, hashes, fixtures, and contract invariants.
+//! Integration tests: schemas, hashes, fixtures, and contract invariants.
 //!
 //! Tests the full validation pipeline: duplicate-key rejection, schema
 //! validation, hash computation, and ID validation.

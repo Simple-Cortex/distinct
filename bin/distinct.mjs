@@ -190,7 +190,7 @@ function exitWith(code) {
 function emitUnavailable(command) {
   const envelope = {
     protocol_version: PROTOCOL_VERSION,
-    engine_version: '0.3.0',
+    engine_version: '0.4.0',
     execution: { engine: 'node-launcher', command },
     result: null,
     limitations: ['native binary not available'],
@@ -227,7 +227,7 @@ Requires Node >= ${MIN_NODE_MAJOR}.`);
   }
 
   if (args.includes('--version') || args.includes('-V')) {
-    console.log(`distinct launcher 0.3.0`);
+    console.log(`distinct launcher 0.4.0`);
     process.exit(0);
   }
 

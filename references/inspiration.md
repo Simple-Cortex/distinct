@@ -38,6 +38,18 @@ If a site blocks fetching or no browser or network tool exists, mark the referen
 
 Inspiration is reference-only: never trace, copy or ship it. Directions must cite which observations they borrow and which they deliberately break. Keep inspiration and competitor evidence separate (competitors live in `landscape`).
 
+## Agencies and brands: study the process
+
+When a reference is an agency or brand (`kind: "agency"` or `"brand"`), do not stop at its look. Find and fetch 2-3 of its case studies, process or how-to articles, or interviews (its site's work and approach pages, Brand New or It's Nice That write-ups, talks). Import each page as evidence (`evidence import --source-id insp-<ref_id>-p<n>`, one id per file) and list it under the reference's `process_sources`.
+
+Record takeaways as concrete methods ("starts from a single verbal idea before any drawing", "builds the mark from the brand's typeface"), not adjectives. Then synthesize board-level `process_principles`, each with `how_we_apply`. Embody the method, never the output. The gate blocks `agency_process_unread` for a fetched `kind: "agency"` reference with no process source that has resolving evidence and a takeaway.
+
+## Logos you like: break them down
+
+From each named agency or brand, show the user 6-12 of its logos (fetched images) and ask which they like and why; record the answer verbatim as `user_reaction`. Then break down at least 2 liked logos across the facets (idea, construction, typography, negative space, colour, small size, distinctiveness), plus 1 disliked logo for contrast if offered. Import one image per logo (`insp-<logo_id>-<n>`) and cite it in the breakdown's `evidence_ids`.
+
+`transferable_principles` are methods you may reuse; `do_not_copy` names what would be plagiarism. Identity work must cite which `transferable_principles` each candidate uses and confirm it avoids every `do_not_copy` item. `gate --scope logo_intent` blocks `logo_breakdown_missing` until one breakdown has a resolving evidence id, 4 or more non-empty facets, a transferable principle and a `do_not_copy` entry.
+
 ## Record
 
 Import one `source` record with `"privacy":"confidential"` (exports always exclude it, so reference lists and verbatim reactions never reach a client kit; the gate still reads it), then check the gate:
@@ -48,8 +60,17 @@ Import one `source` record with `"privacy":"confidential"` (exports always exclu
  "references":[{"ref_id":"r1","url":"https://...","label":"...","stance":"like|dislike|admired_outside_category",
    "status":"fetched|unreachable","evidence_ids":["insp-r1-1","insp-r1-2"],
    "observations":["condensed grotesk all caps, 2-colour, heavy rules"],
-   "user_reaction":null,"unreachable_reason":null}]}}
+   "user_reaction":null,"unreachable_reason":null,
+   "kind":"agency|brand|designer|gallery|other",
+   "process_sources":[{"url":"https://...","title":"...","source_type":"case_study|process_article|interview|talk|other",
+     "evidence_ids":["insp-r1-p1"],"takeaways":["concrete method"]}]}],
+ "process_principles":[{"principle":"...","from_ref_ids":["r1"],"how_we_apply":"..."}],
+ "logo_breakdowns":[{"logo_id":"l1","ref_id":"r1","label":"...","evidence_ids":["insp-l1-1"],"user_reaction":"verbatim or null",
+   "facets":{"idea":"","construction":"","typography":"","negative_space":"","colour":"","small_size":"","distinctiveness":""},
+   "transferable_principles":["..."],"do_not_copy":["..."]}]}}
 ```
+
+`kind`, `process_sources`, `process_principles` and `logo_breakdowns` are optional.
 
 (The record also carries the usual envelope fields: `schema_version`, `brand_id`, `privacy`, `created_at`, `created_by`, `dependencies`, `limitations`.)
 

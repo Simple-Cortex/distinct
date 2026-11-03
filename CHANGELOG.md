@@ -4,6 +4,13 @@ All notable changes to Distinct are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-03
+
+### Added
+- `gate` landscape rule for `direction`, `deliver` and the default scope: blocks `landscape_missing`, `landscape_unseen` and `landscape_evidence_dangling` until at least one competitor was fetched, looked at and imported as evidence. `not_applicable_reason` passes with an advisory; `landscape_unreachable` and `landscape_thin` are advisories only.
+- Agency process study: inspiration references accept `kind` and `process_sources`, and `gate` blocks `agency_process_unread` for a fetched agency reference whose case studies or process writing were not read. Boards also carry `process_principles`.
+- Logo breakdowns: boards accept `logo_breakdowns`, and `gate --scope logo_intent` blocks `logo_breakdown_missing` until a liked logo is broken down across at least four facets with transferable principles and `do_not_copy` entries. Identity candidates must cite the principles they use.
+
 ## [0.3.0] - 2026-11-02
 
 ### Added

@@ -1,4 +1,4 @@
-// Install and runtime validation tests for WO-07.
+// Install and runtime validation tests.
 // Tests: packed install from unrelated cwd, existing_install_refused,
 // installer_no_network (static check), manifest_private_file_rejected.
 
@@ -106,7 +106,7 @@ describe('install', () => {
     }
   });
 
-  // WO-07: existing_install_refused — non-empty dest without --force is refused.
+  // Existing_install_refused — non-empty dest without --force is refused.
   it('existing_install_refused', () => {
     const dest = mkdtempSync(join(tmpdir(), 'distinct-install-refuse-'));
     // Place a sentinel file
@@ -127,7 +127,7 @@ describe('install', () => {
     rmSync(dest, { recursive: true, force: true });
   });
 
-  // WO-07: installer_no_network — static check that install.mjs has no http/net imports.
+  // Installer_no_network — static check that install.mjs has no http/net imports.
   it('installer_no_network', () => {
     const src = readFileSync(installScript, 'utf-8');
     // Check that no network-related modules are imported
@@ -149,7 +149,7 @@ describe('install', () => {
     }
   });
 
-  // WO-07: manifest_private_file_rejected — manifest should not include files
+  // Manifest_private_file_rejected — manifest should not include files
   // from planning/, tasks/, or crates/.
   it('manifest_private_file_rejected', () => {
     const manifest = JSON.parse(readFileSync(resolve(repoRoot, 'runtime-manifest.json'), 'utf-8'));
@@ -178,9 +178,9 @@ describe('validate-runtime', () => {
   });
 });
 
-// ── WO-09: WO-00 control tests ──────────────────────────────────────
+// ── Control tests ──────────────────────────────────────
 
-describe('WO-00 controls', () => {
+describe('Controls', () => {
   // existing_destination_preserved — install refuses a non-empty destination
   // without --force, and preserves existing files.
   it('existing_destination_preserved', () => {

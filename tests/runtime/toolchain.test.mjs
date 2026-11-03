@@ -1,4 +1,4 @@
-// WO-00 toolchain checks. Real checks only: the native-binary test is skipped
+// Toolchain checks. Real checks only: the native-binary test is skipped
 // with an explicit reason when the binary is not built, never passed vacuously.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';

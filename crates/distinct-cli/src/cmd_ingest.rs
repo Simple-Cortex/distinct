@@ -1,4 +1,4 @@
-//! Ingest commands and evidence forget (WO-10, WO-10b, D-I).
+//! Ingest commands and evidence forget (D-I).
 //!
 //! - `ingest plan` — emit/freeze bounded host-acquisition plan, no crawling
 //! - `ingest import` — validate adapter results with provenance
@@ -157,7 +157,7 @@ fn cmd_ingest_plan<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E
 
     match ws.store_object(&record) {
         Ok(hash) => {
-            // WO-10b: update STATE so verify stays clean.
+            // Update STATE so verify stays clean.
             if update_state(&ws, out, "ingest-plan").is_err() {
                 return Exit::Invalid;
             }
@@ -481,7 +481,7 @@ fn cmd_ingest_import<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut
         }
     }
 
-    // WO-10b: update STATE so verify stays clean.
+    // Update STATE so verify stays clean.
     if imported > 0 && update_state(&ws, out, "ingest-import").is_err() {
         return Exit::Invalid;
     }
@@ -577,7 +577,7 @@ fn cmd_ingest_diff<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut E
         }
     }
 
-    // WO-10b: report explicitly_removed sources (removed: true) and
+    // Report explicitly_removed sources (removed: true) and
     // unavailable sources (coverage unavailable or failed).
     // Never infer deletion from absence.
     let mut explicitly_removed = Vec::new();
@@ -758,7 +758,7 @@ fn cmd_ingest_extract<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mu
 
             match ws.store_object(&record) {
                 Ok(hash) => {
-                    // WO-10b: update STATE so verify stays clean.
+                    // Update STATE so verify stays clean.
                     if update_state(&ws, out, "ingest-extract").is_err() {
                         return Exit::Invalid;
                     }
@@ -876,7 +876,7 @@ pub fn cmd_evidence_forget<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err
         );
     }
 
-    // WO-10b: honour --expected-state if given.
+    // Honour --expected-state if given.
     let state = match ws.read_state() {
         Ok(s) => s,
         Err(e) => return write_error(out, "evidence-forget", &e.to_string(), Exit::Invalid),
@@ -1016,7 +1016,7 @@ pub fn cmd_evidence_forget<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err
 
     match ws.store_object(&tombstone) {
         Ok(hash) => {
-            // WO-10b: update STATE so verify stays clean.
+            // Update STATE so verify stays clean.
             if update_state(&ws, out, "evidence-forget").is_err() {
                 return Exit::Invalid;
             }

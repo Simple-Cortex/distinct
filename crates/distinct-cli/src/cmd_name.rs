@@ -1,4 +1,4 @@
-//! `name check` (WO-25): offline red-flag screen for naming candidates.
+//! `name check`: offline red-flag screen for naming candidates.
 //!
 //! Reports NFKC changes, Unicode scripts, UTS #39 confusable skeletons and
 //! flag-list hits. It makes no network calls, issues no verdict or score, and

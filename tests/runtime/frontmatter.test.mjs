@@ -1,4 +1,4 @@
-// WO-14: Frontmatter check against the agentskills spec.
+// Frontmatter check against the agentskills spec.
 // Every SKILL.md must have YAML frontmatter with:
 //   - name: string, ≤ 1024 chars
 //   - description: string, ≤ 1024 chars

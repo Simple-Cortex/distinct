@@ -1,4 +1,4 @@
-// WO-15: Hardening tests
+// Hardening tests
 // Tests each defect fix by running the binary.
 import { test } from 'node:test';
 import { strict as assert } from 'node:assert';
@@ -53,7 +53,7 @@ function writeRecord(wsDir, brandId, filename, record) {
   return path;
 }
 
-test('WO-15.1: record import rejects governance kinds (exit 3)', { skip: SKIP }, () => {
+test('Record import rejects governance kinds (exit 3)', { skip: SKIP }, () => {
   const brandId = 'wo15-test1';
   const wsDir = setupBrand(brandId);
   initBrand(wsDir, brandId);
@@ -94,7 +94,7 @@ test('WO-15.1: record import rejects governance kinds (exit 3)', { skip: SKIP },
   rmSync(wsDir, { recursive: true, force: true });
 });
 
-test('WO-15.2: record import updates STATE (verify passes)', { skip: SKIP }, () => {
+test('Record import updates STATE (verify passes)', { skip: SKIP }, () => {
   const brandId = 'wo15-test2';
   const wsDir = setupBrand(brandId);
   initBrand(wsDir, brandId);
@@ -125,7 +125,7 @@ test('WO-15.2: record import updates STATE (verify passes)', { skip: SKIP }, () 
   rmSync(wsDir, { recursive: true, force: true });
 });
 
-test('WO-15.3: verify exits 1 when state is invalid', { skip: SKIP }, () => {
+test('Verify exits 1 when state is invalid', { skip: SKIP }, () => {
   const brandId = 'wo15-test3';
   const wsDir = setupBrand(brandId);
   initBrand(wsDir, brandId);
@@ -161,7 +161,7 @@ test('WO-15.3: verify exits 1 when state is invalid', { skip: SKIP }, () => {
   rmSync(wsDir, { recursive: true, force: true });
 });
 
-test('WO-15.4: patch --apply with wrong parent_hash exits 3', { skip: SKIP }, () => {
+test('Patch --apply with wrong parent_hash exits 3', { skip: SKIP }, () => {
   const brandId = 'wo15-test4';
   const wsDir = setupBrand(brandId);
   initBrand(wsDir, brandId);
@@ -205,7 +205,7 @@ test('WO-15.4: patch --apply with wrong parent_hash exits 3', { skip: SKIP }, ()
   rmSync(wsDir, { recursive: true, force: true });
 });
 
-test('WO-15.5: color check accepts #rrggbb and // comments, exits 3 on zero pairs', { skip: SKIP }, () => {
+test('Color check accepts #rrggbb and // comments, exits 3 on zero pairs', { skip: SKIP }, () => {
   const brandId = 'wo15-test5';
   const wsDir = setupBrand(brandId);
   initBrand(wsDir, brandId);
@@ -233,7 +233,7 @@ c9a227 ffffff
   rmSync(wsDir, { recursive: true, force: true });
 });
 
-test('WO-15.6: packet --scope with unknown field exits 3', { skip: SKIP }, () => {
+test('Packet --scope with unknown field exits 3', { skip: SKIP }, () => {
   const brandId = 'wo15-test6';
   const wsDir = setupBrand(brandId);
   initBrand(wsDir, brandId);
@@ -253,7 +253,7 @@ test('WO-15.6: packet --scope with unknown field exits 3', { skip: SKIP }, () =>
   rmSync(wsDir, { recursive: true, force: true });
 });
 
-test('WO-15.7: test import with nonexistent frozen_plan_ref exits 3', { skip: SKIP }, () => {
+test('Test import with nonexistent frozen_plan_ref exits 3', { skip: SKIP }, () => {
   const brandId = 'wo15-test7';
   const wsDir = setupBrand(brandId);
   initBrand(wsDir, brandId);
@@ -279,7 +279,7 @@ test('WO-15.7: test import with nonexistent frozen_plan_ref exits 3', { skip: SK
   rmSync(wsDir, { recursive: true, force: true });
 });
 
-test('WO-15.8: decision record without data.target exits 3', { skip: SKIP }, () => {
+test('Decision record without data.target exits 3', { skip: SKIP }, () => {
   const brandId = 'wo15-test8';
   const wsDir = setupBrand(brandId);
   initBrand(wsDir, brandId);

@@ -1,4 +1,4 @@
-# distinct name check: default flag list (WO-25).
+# distinct name check: default flag list.
 # INCOMPLETE, English-only and advisory. A name that matches nothing here has
 # not been cleared; a name that matches may be fine. Not linguistic screening,
 # not trademark clearance.

@@ -118,19 +118,33 @@ Execute `landscape` after `discover` is complete. The goal is to map the competi
 
 ### Native command calls
 
-To store raw competitor evidence and screenshots provided by the host:
+Fetch-and-look loop, per competitor `c<n>`: open the site, screenshot it, view the image, then import one file per evidence id (`land-<competitor_id>-<n>`):
 ```text
-node <skill-dir>/bin/distinct.mjs evidence import --source-id comp_audit_01 --file audit_manifest.json --workspace <project> --brand <id>
+node <skill-dir>/bin/distinct.mjs evidence import --source-id land-c1-1 --file c1-home.png --workspace <project> --brand <id>
 ```
 
-To store the structured landscape record:
+Record shape (`research_item`, id `landscape`, `data.type == "landscape"`), imported with `record import`:
+```json
+{"kind":"research_item","id":"landscape","privacy":"internal","data":{"type":"landscape",
+ "not_applicable_reason":null,
+ "competitors":[{"competitor_id":"c1","name":"...","url":"https://...","depth":"deep|shallow",
+   "status":"fetched|unreachable","evidence_ids":["land-c1-1"],"observations":["..."],"unreachable_reason":null}],
+ "codes_to_keep":["..."],"codes_to_break":["..."],"whitespace":["..."]}}
+```
 ```text
 node <skill-dir>/bin/distinct.mjs record import --file landscape_record.json --workspace <project> --brand <id>
 ```
 
-To query stored competitor metadata without opening full details:
+A competitor you did not open and look at is `unreachable` with a reason, never `fetched`. Set `not_applicable_reason` only when there is no market to map (for example an internal sub-brand); the gate then passes and warns `landscape_not_applicable`.
+
+`gate --scope direction` (also `deliver` and the default) blocks with `landscape_missing`, `landscape_unseen` (no fetched competitor with resolving evidence and an observation) or `landscape_evidence_dangling` (a fetched competitor cites forgotten evidence). Advisories `landscape_unreachable` and `landscape_thin` (fewer than 3 fetched) never block.
 ```text
-node <skill-dir>/bin/distinct.mjs query --kind competitor --limit 10 --workspace <project> --brand <id>
+node <skill-dir>/bin/distinct.mjs gate --scope direction --workspace <project> --brand <id>
+```
+
+To query stored landscape records without opening full details:
+```text
+node <skill-dir>/bin/distinct.mjs query --kind research_item --limit 10 --workspace <project> --brand <id>
 ```
 
 ### Host-guided steps and fallbacks
