@@ -1,7 +1,8 @@
 //! SVG inspection for the limited static-SVG profile (contract §8, D-E).
 //!
-//! Inspection only — no rendering. The resvg worker is out of scope;
-//! `native_proof` is always reported as `"unavailable"`.
+//! Inspection only — no rendering. Native rendering exists as the separate
+//! `logo proof` command (resvg worker); `native_proof` is reported as
+//! `"available"` to signal that, and inspection itself never renders.
 
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
@@ -65,7 +66,8 @@ pub struct InspectResult {
     pub unsupported: Vec<UnsupportedItem>,
     /// Structural issues (missing viewBox, non-finite numbers, etc.).
     pub issues: Vec<Issue>,
-    /// Always `"unavailable"` in this alpha (no renderer worker).
+    /// Always `"available"`: native proof rendering exists (`logo proof`), but
+    /// inspection does not run it.
     pub native_proof: String,
     /// Total element count.
     pub element_count: usize,
@@ -272,7 +274,7 @@ pub fn inspect_svg(file_path: &Path) -> Result<InspectResult, InspectError> {
         element_counts,
         unsupported,
         issues,
-        native_proof: "unavailable".into(),
+        native_proof: "available".into(),
         element_count: total_elements,
         max_depth_reached: max_depth,
     })
@@ -472,7 +474,7 @@ mod tests {
         );
         let result = inspect_svg(&path).unwrap();
         assert_eq!(result.verdict, Verdict::Inspected);
-        assert_eq!(result.native_proof, "unavailable");
+        assert_eq!(result.native_proof, "available");
         assert_eq!(result.element_counts.get("svg"), Some(&1));
         assert_eq!(result.element_counts.get("rect"), Some(&1));
         assert_eq!(result.element_counts.get("circle"), Some(&1));

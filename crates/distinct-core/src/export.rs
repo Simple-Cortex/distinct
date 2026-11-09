@@ -74,7 +74,14 @@ pub fn run_export(opts: &ExportOptions<'_>) -> ExportResult {
     };
 
     // D-H: kinds excluded from specification_only (binary/proof payloads).
-    let spec_excluded_kinds = ["asset", "logo_finding", "proof", "logo_intent"];
+    let spec_excluded_kinds = [
+        "asset",
+        "logo_finding",
+        "logo_proof",
+        "color_check",
+        "proof",
+        "logo_intent",
+    ];
     // D-H: visual record kinds that get "concept": true in concept_only.
     let visual_kinds = ["logo_intent", "logo_finding", "direction", "asset", "voice"];
 
@@ -116,6 +123,7 @@ pub fn run_export(opts: &ExportOptions<'_>) -> ExportResult {
         }
 
         let mut record = obj.clone();
+        scrub_local_paths(&mut record);
 
         // D-H: concept_only marks visual records with "concept": true.
         if opts.kind == "concept_only" {
@@ -248,7 +256,7 @@ pub fn run_export(opts: &ExportOptions<'_>) -> ExportResult {
             );
         }
         "specification_only" => {
-            let excluded_kinds = ["asset", "logo_finding", "proof", "logo_intent"];
+            let excluded_kinds = spec_excluded_kinds;
             manifest.insert(
                 "assets_excluded".into(),
                 Value::Array(
@@ -328,6 +336,30 @@ pub fn manifest_hash(manifest: &Value) -> Option<String> {
     hash::hash_json("distinct.export.manifest.v1\n", manifest)
         .ok()
         .map(|h| h.as_hex().to_string())
+}
+
+/// Remove machine-local filesystem paths from an exported copy of a record.
+///
+/// `logo_proof.data.proofs_dir` is an absolute workspace path and is dropped;
+/// `color_check.data.pairs_file` is reduced to its file name. Stored records
+/// are not modified.
+fn scrub_local_paths(record: &mut Value) {
+    let kind = record["kind"].as_str().unwrap_or("").to_string();
+    let Some(data) = record.get_mut("data").and_then(Value::as_object_mut) else {
+        return;
+    };
+    match kind.as_str() {
+        "logo_proof" => {
+            data.remove("proofs_dir");
+        }
+        "color_check" => {
+            if let Some(p) = data.get("pairs_file").and_then(Value::as_str) {
+                let name = p.rsplit(['/', '\\']).next().unwrap_or("").to_string();
+                data.insert("pairs_file".into(), Value::String(name));
+            }
+        }
+        _ => {}
+    }
 }
 
 #[cfg(test)]

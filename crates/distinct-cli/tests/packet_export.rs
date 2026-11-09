@@ -1230,20 +1230,30 @@ fn export_specification_only_excludes_binary_proof() {
         "limitations": [],
         "data": {"name": "Acme"}
     });
-    let logo_finding = serde_json::json!({
-        "schema_version": "1.0.0",
-        "kind": "logo_finding",
-        "id": "lf1",
-        "brand_id": "acme",
-        "privacy": "public",
-        "created_at": "2026-10-27T00:00:00Z",
-        "created_by": {"kind": "agent", "id": "distinct-rs"},
-        "dependencies": [],
-        "limitations": [],
-        "data": {"verdict": "inspected"}
-    });
     import_record(&dir, "acme", &project);
-    import_record(&dir, "acme", &logo_finding);
+    // logo_finding is engine-written (record import refuses it): create a real one.
+    let svg = dir.join("mark.svg");
+    fs::write(
+        &svg,
+        r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="5" height="5"/></svg>"#,
+    )
+    .unwrap();
+    let o = run(&[
+        "logo",
+        "inspect",
+        "--brand",
+        "acme",
+        "--workspace",
+        &dir.to_string_lossy(),
+        "--file",
+        &svg.to_string_lossy(),
+    ]);
+    assert_eq!(exit_code(&o), 0, "logo inspect failed: {}", stdout(&o));
+    let lf_id = serde_json::from_str::<serde_json::Value>(stdout(&o).trim()).unwrap()["result"]
+        ["finding_id"]
+        .as_str()
+        .unwrap()
+        .to_string();
 
     let out_dir = dir.join("export-output");
     let o = run(&[
@@ -1273,9 +1283,23 @@ fn export_specification_only_excludes_binary_proof() {
         excluded.iter().any(|e| e.as_str() == Some("logo_finding")),
         "assets_excluded should include logo_finding: {excluded:?}"
     );
+    // The manifest must list every kind the exporter actually withholds.
+    for k in [
+        "asset",
+        "logo_finding",
+        "logo_proof",
+        "color_check",
+        "proof",
+        "logo_intent",
+    ] {
+        assert!(
+            excluded.iter().any(|e| e.as_str() == Some(k)),
+            "assets_excluded missing {k}: {excluded:?}"
+        );
+    }
 
     // logo_finding record should NOT be written.
-    let lf_file = out_dir.join("specification_only/logo_finding/lf1.json");
+    let lf_file = out_dir.join(format!("specification_only/logo_finding/{lf_id}.json"));
     assert!(
         !lf_file.exists(),
         "logo_finding should be excluded from specification_only"

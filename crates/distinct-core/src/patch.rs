@@ -21,6 +21,11 @@ fn require_content_kind(kind: &str, op_index: usize) -> Result<(), String> {
             "operation[{op_index}]: kind '{kind}' is a governance kind and cannot be modified by patch"
         ));
     }
+    if parsed.is_engine_only() {
+        return Err(format!(
+            "operation[{op_index}]: kind '{kind}' is written only by the engine (logo inspect, logo proof, color check) and cannot be modified by patch"
+        ));
+    }
     Ok(())
 }
 
@@ -411,6 +416,37 @@ pub fn apply_patch(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn engine_only_kinds_rejected_for_every_op() {
+        for kind in ["logo_finding", "logo_proof", "color_check"] {
+            for op in ["add", "replace", "remove"] {
+                let json = serde_json::json!({
+                    "brand_id": "acme",
+                    "operations": [{
+                        "op": op, "kind": kind, "id": "x",
+                        "parent_hash": "a".repeat(64),
+                        "data": {"verdict": "inspected"},
+                    }],
+                });
+                let err = parse_patch_plan(&json).unwrap_err();
+                assert!(
+                    err.contains("written only by the engine"),
+                    "{op} {kind}: {err}"
+                );
+            }
+        }
+        for kind in ["claim", "voice", "logo_intent"] {
+            let json = serde_json::json!({
+                "brand_id": "acme",
+                "operations": [{"op": "add", "kind": kind, "id": "x", "data": {"a": 1}}],
+            });
+            assert!(
+                parse_patch_plan(&json).is_ok(),
+                "{kind} must remain patchable"
+            );
+        }
+    }
 
     #[test]
     fn parse_add_operation() {
