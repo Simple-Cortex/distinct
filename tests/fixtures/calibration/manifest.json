@@ -1,0 +1,318 @@
+{
+  "version": 1,
+  "measured_items": [
+    "colour_contrast",
+    "engine_safe"
+  ],
+  "fixtures": [
+    {
+      "id": "C1",
+      "file": "svg/C1.svg",
+      "role": "control",
+      "flaws": [],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "C2",
+      "file": "svg/C2.svg",
+      "role": "control",
+      "flaws": [],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "C3",
+      "file": "svg/C3.svg",
+      "role": "control",
+      "flaws": [],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": [
+        {
+          "fg": "#0b1f4d",
+          "bg": "#ffffff",
+          "expect_lc_min": 101.6,
+          "expect_lc_max": 103.6
+        },
+        {
+          "fg": "#ffd400",
+          "bg": "#101820",
+          "expect_lc_min": -82.9,
+          "expect_lc_max": -80.9
+        }
+      ]
+    },
+    {
+      "id": "F1",
+      "file": "svg/F1.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "negative_space_reading",
+          "rubric_item": "negative_space_hazard",
+          "detectable": "judged",
+          "note": "chiral C4 plate whose gaps read as a pinwheel of inward arrows"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "F2",
+      "file": "svg/F2.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "small_size_misread",
+          "rubric_item": "small_size_legibility",
+          "detectable": "judged",
+          "future": "measured@0.5",
+          "note": "thin bridge vanishes at 24 px, two arches read as two letters"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "F2-lockup",
+      "file": "svg/F2-lockup.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "small_size_misread",
+          "rubric_item": "small_size_legibility",
+          "detectable": "judged",
+          "future": "measured@0.5",
+          "note": "same flaw as F2 checked beside a rectangle wordmark"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "F3",
+      "file": "svg/F3.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "stock_icon_collision",
+          "rubric_item": "distinctiveness",
+          "detectable": "judged",
+          "future": "measured@0.6",
+          "note": "ring with a top gap and a vertical bar reads as a generic power toggle"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "F4",
+      "file": "svg/F4.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "accent_vanishes_on_dark",
+          "rubric_item": "colour_contrast",
+          "detectable": "measured",
+          "note": "accent against the dark plate is near 3:1 WCAG equivalent"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": [
+        {
+          "fg": "#0b1f4d",
+          "bg": "#ffffff",
+          "expect_lc_min": 101.6,
+          "expect_lc_max": 103.6
+        },
+        {
+          "fg": "#5a6684",
+          "bg": "#101820",
+          "expect_lc_min": -23.1,
+          "expect_lc_max": -21.1
+        }
+      ]
+    },
+    {
+      "id": "F5",
+      "file": "svg/F5.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "detail_collapse",
+          "rubric_item": "small_size_legibility",
+          "detectable": "judged",
+          "future": "measured@0.5",
+          "note": "dot shading at a 6-unit pitch collapses below 64 px. Judged, not measured: min_feature_px counts axis-run length and does not detect dot or hatch collapse"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "F6",
+      "file": "svg/F6.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "off_centre_mass",
+          "rubric_item": "balance",
+          "detectable": "judged",
+          "future": "measured@0.5",
+          "note": "bbox centred but visual centroid sits about 8% off centre"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "F7",
+      "file": "svg/F7.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "near_symmetry",
+          "rubric_item": "balance",
+          "detectable": "judged",
+          "future": "measured@0.5",
+          "note": "near-symmetric form with one side 2% wider"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "F8",
+      "file": "svg/F8.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "path_bloat",
+          "rubric_item": "construction_quality",
+          "detectable": "judged",
+          "future": "measured@0.5",
+          "note": "simple ring emitted as 3000 tiny segments"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "F9",
+      "file": "svg/F9.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "unsupported_construct",
+          "rubric_item": "engine_safe",
+          "detectable": "measured",
+          "note": "uses clipPath, outside the supported profile"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "unsupported_content",
+        "proof": "blocked"
+      },
+      "colours": null
+    },
+    {
+      "id": "F10",
+      "file": "svg/F10.svg",
+      "role": "flawed",
+      "flaws": [
+        {
+          "type": "near_copy",
+          "rubric_item": "distinctiveness",
+          "detectable": "judged",
+          "future": "measured@0.6",
+          "note": "copy of reference R1 with one minor change"
+        }
+      ],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "R1",
+      "file": "svg/R1.svg",
+      "role": "reference",
+      "flaws": [],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "R-stock-power",
+      "file": "svg/R-stock-power.svg",
+      "role": "reference",
+      "flaws": [],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "R-stock-home",
+      "file": "svg/R-stock-home.svg",
+      "role": "reference",
+      "flaws": [],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    },
+    {
+      "id": "R-stock-brackets",
+      "file": "svg/R-stock-brackets.svg",
+      "role": "reference",
+      "flaws": [],
+      "expect_engine": {
+        "inspect_verdict": "inspected",
+        "proof": "ok"
+      },
+      "colours": null
+    }
+  ]
+}
