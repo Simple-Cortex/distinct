@@ -88,10 +88,12 @@ Generating, inspecting, and systematizing the mark and broader identity (typogra
 - Approved platform and voice records.
 - Explicit scope ID.
 
-Build marks as code per `references/marks-as-code.md`; write the pass contract (criteria and thresholds) in `direct` per `references/critique.md` before drawing.
+Build marks as code per `references/marks-as-code.md` (watch file size and node count against a hand-written baseline; a generated mark many times larger needs justification or simplification); write the pass contract (criteria and thresholds) in `direct` per `references/critique.md` before drawing.
 
 **Procedure**
 0. **Logo breakdown gate (mandatory):** run `gate --scope logo_intent`; stop while it shows `logo_breakdown_missing` (see "Logos you like" in `references/inspiration.md`). Before drawing candidates, read the breakdown principles.
+0a. **Palette and idea first:** confirm the palette source (and rank: primary, secondary, accent) at intake, and re-confirm any carried-over accent each round. State and record a one-line idea per territory or route before drawing any geometry; if removing the idea line leaves the mark saying nothing distinct, the route is not ready.
+0b. **Reference reasoning:** derive marks from the reference's reason (belief, basic unit, heritage) mapped to the client's equivalent, not from copying its technique.
 1. **Ideation & Sketching (host-guided):** Generate 30-50 rough thumbnails (advisory target) across different nouns and combinations.
 2. **Shortlist & Vectorization (host-guided):** Select 3-15 distinct ideas (advisory target), vectorize with minimal anchor points, and refine optically. Each candidate's rationale cites the breakdown `transferable_principles` it uses and confirms it avoids every `do_not_copy` item.
 3. **Capture Logo Intent:** Record the approved concept, defining features, intended construction, protected geometry, and target media into a `logo_intent` record.

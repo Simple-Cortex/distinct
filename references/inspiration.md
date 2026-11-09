@@ -48,6 +48,8 @@ Record takeaways as concrete methods ("starts from a single verbal idea before a
 
 From each named agency or brand, show the user 6-12 of its logos (fetched images) and ask which they like and why; record the answer verbatim as `user_reaction`. Then break down at least 2 liked logos across the facets (idea, construction, typography, negative space, colour, small size, distinctiveness), plus 1 disliked logo for contrast if offered. Import one image per logo (`insp-<logo_id>-<n>`) and cite it in the breakdown's `evidence_ids`.
 
+Besides the facets, record for each breakdown the belief or reason behind the mark, its basic unit, its heritage, and the client's equivalent (put them in `facets` or `transferable_principles`). A technique with no derived idea behind it is a transplant: flag it. This is how "embody the method, never the output" is applied to logos.
+
 `transferable_principles` are methods you may reuse; `do_not_copy` names what would be plagiarism. Identity work must cite which `transferable_principles` each candidate uses and confirm it avoids every `do_not_copy` item. `gate --scope logo_intent` blocks `logo_breakdown_missing` until one breakdown has a resolving evidence id, 4 or more non-empty facets, a transferable principle and a `do_not_copy` entry.
 
 ## Record

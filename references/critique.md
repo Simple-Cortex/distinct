@@ -53,18 +53,25 @@ Criteria sources (secondary, not primary texts):
 - Chermayeff & Geismar & Haviv: appropriate, distinctive, memorable. Seen only in low-quality snippets; the book "Identify" was not opened. Do not attribute more.
 - Squint, fax and reduction tests are folk practice, not sourced doctrine. Call them "our operationalisation".
 
-| Item | Anchor for 5 / pass | Class |
-|---|---|---|
-| Appropriate to the organisation | reflects activity, values and audience without explaining itself | JUDGED |
-| Simple to reproduce | plausible to redraw from memory; few distinct parts | JUDGED; draw test is OBSERVED |
-| Distinct in category | critic picks the candidate out of the line-up | JUDGED; market distinctiveness needs OBSERVED |
-| Legible at 16 and 24 px | features survive; no merged counters | MEASURED where `logo proof` reports `min_feature_px`, else JUDGED |
-| Works in one colour | no meaning lost without colour | JUDGED |
-| Works reversed | holds on dark ground | JUDGED; contrast pairs MEASURED via `color check` |
-| Silhouette | shape still reads when blurred or filled solid | JUDGED |
-| Adaptable across applications | holds in the mockup contexts | JUDGED |
-| Durability | low dependence on a current trend | JUDGED, weakest item |
-| Memorable | recall by real people | OBSERVED only |
+Use the `id` as the finding's `item` field; the calibration suite (`tests/eval/`) scores against these ids.
+
+| id | Item | Anchor for 5 / pass | Class |
+|---|---|---|---|
+| `appropriate` | Appropriate to the organisation | reflects activity, values and audience without explaining itself | JUDGED |
+| `simple` | Simple to reproduce | plausible to redraw from memory; few distinct parts | JUDGED; draw test is OBSERVED |
+| `distinctiveness` | Distinct in category | critic picks the candidate out of the line-up; no stock-icon or reference look-alike | JUDGED; market distinctiveness needs OBSERVED |
+| `small_size_legibility` | Legible at 16 and 24 px | features survive; no merged counters; no misread as other letters, alone or in a lockup | MEASURED where `logo proof` reports `min_feature_px`, else JUDGED |
+| `negative_space_hazard` | Gaps and secondary figures | at every rotation, mirror and inversion the gaps form no unintended letter, arrow or symbol | JUDGED |
+| `balance` | Balance | visual mass sits where intended; symmetry is exact or clearly deliberate | JUDGED |
+| `one_colour` | Works in one colour | no meaning lost without colour | JUDGED |
+| `reversed` | Works reversed | holds on dark ground | JUDGED |
+| `colour_contrast` | Colour contrast | every brand pair, accent included, stays visible on light and dark plates | MEASURED via `color check` |
+| `silhouette` | Silhouette | shape still reads when blurred or filled solid | JUDGED |
+| `construction_quality` | Construction | clean geometry, no stray nodes, size reasonable against a hand-drawn baseline | JUDGED |
+| `engine_safe` | Engine-safe SVG | `logo inspect` verdict is `inspected` | MEASURED |
+| `adaptable` | Adaptable across applications | holds in the mockup contexts | JUDGED |
+| `durability` | Durability | low dependence on a current trend | JUDGED, weakest item |
+| `memorable` | Memorable | recall by real people | OBSERVED only |
 
 ## Calibration
 
@@ -74,8 +81,26 @@ Before trusting a critic in a session, have it score 3-6 seed marks you make you
 
 No positive verdict until imported evidence shows renders at 16 px and 24 px, one-colour, reversed, and at least one real application mockup. The critic must name one failure per context or state "none found" with a pointer. Missing contexts stay listed as gaps.
 
+Also required before a positive verdict:
+- Mirrored, rotated (90, 180, 270) and inverted (negative-space) renders.
+- Negative-space and secondary-figure screen at every rotation: what do the gaps and the silhouette form? Name any unintended letter, arrow, symbol, or hate symbol or other offensive form. Rotational symmetry with a visible turn direction is a trigger. Keep a mirror-symmetric control.
+- Cold read at small size inside a lockup and on a busy or photographic plate, not only on clean plates. Ask what letters or object a stranger says it is before claiming a letter-based mark reads.
+
+## Self-flagged risk
+
+If the builder or critic names a risk for a candidate (generic, reads as an existing icon or app, misread, cliche), rework or drop it in the same round. Never present a candidate with a known unresolved risk unless the risk is the first line stated to the owner. Give each presented mark a ship-or-withdraw verdict.
+
+## Board QA
+
+Any presentation board carries a checklist of what was checked, pass or fail per item: icon fill ratio in app-icon and favicon frames, text clipping, alignment, stroke below the stated minimum, accent visibility on the dark plate. "I looked at every board" without the list is not evidence.
+
+## Finalists
+
+Present at most three finalists, each with a one-line idea, led by the recommendation. Add a rejected list with a one-line reason each.
+
 ## Similarity
 
+- Similarity and uniqueness must be actually checked, never asserted: line the candidate up against the fetched landscape marks and generic stock icons (describe it in 3 generic nouns, e.g. "two brackets"), and record the nearest few. If the check was not run, write "not run".
 - Compare visually now, host-guided, against the board `do_not_copy` items and landscape marks you fetched. List the nearest few and why.
 - Trademark register search is a documented manual human step. WIPO Global Brand Database terms (Nov 2022) prohibit automated queries, bulk download and scraping; USPTO terms say its web databases are not for bulk download and heavy automated access may be blocked. Give the owner the registers to search by hand or via counsel.
 - Make no clearance claim. Say "not a trademark clearance".
@@ -101,7 +126,7 @@ No positive verdict until imported evidence shows renders at 16 px and 24 px, on
 Findings sit in `data.findings` as shown in `references/commands.md` (`id`, `severity`, `text`). The engine does not validate review `data`, so add `class` and `item` fields directly:
 
 ```json
-{"id":"f3","severity":"major","class":"JUDGED","item":"legible-24px","text":"Critic other-family, runs disagree. Counter closes in 24px render (proof-24.png, upper right)."}
+{"id":"f3","severity":"major","class":"JUDGED","item":"small_size_legibility","text":"Critic other-family, runs disagree. Counter closes in 24px render (proof-24.png, upper right)."}
 ```
 
 End each review with what was not checked (trademark, cultural reading in unfamiliar markets, print production, accessibility beyond colour) and the critic identity. A review is evidence, not approval; only the owner decides.
