@@ -4,6 +4,14 @@ All notable changes to Distinct are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- `references/critique.md`: self-critique protocol for logos and identity systems. Findings carry a claim class (MEASURED, JUDGED, OBSERVED), the critic runs in a fresh context on the frozen packet plus proof renders, and the protocol adds order-swapped and adversarial passes, a hidden-name competitor line-up, an anchored pointwise rubric, calibration seeds and a context gate (16/24 px, one-colour, reversed, real application) before any positive verdict.
+- `references/marks-as-code.md`: construct marks as small generators from a grid and named constants, emitting engine-safe SVG (the elements `logo inspect` accepts); optional permissively licensed tooling (skia-pathops, picosvg, SVGO, fontTools, vtracer) and an avoid list with licence reasons.
+- `references/design-tools.md` and `references/design-tools-canvases.md`: host-side guide for design-canvas MCPs (Pencil, Paper, OpenDesign, Doop). Canvas state is never evidence until exported and imported, and canvas approvals are never owner decisions.
+
+### Changed
+- `SKILL.md`, `references/review.md`, `references/visual.md` and the `review` and `identity` route skills point to the new references; `runtime-manifest.json` lists them.
+
 ## [0.4.0] - 2026-11-03
 
 ### Added

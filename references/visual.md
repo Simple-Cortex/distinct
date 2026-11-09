@@ -88,6 +88,8 @@ Generating, inspecting, and systematizing the mark and broader identity (typogra
 - Approved platform and voice records.
 - Explicit scope ID.
 
+Build marks as code per `references/marks-as-code.md`; write the pass contract (criteria and thresholds) in `direct` per `references/critique.md` before drawing.
+
 **Procedure**
 0. **Logo breakdown gate (mandatory):** run `gate --scope logo_intent`; stop while it shows `logo_breakdown_missing` (see "Logos you like" in `references/inspiration.md`). Before drawing candidates, read the breakdown principles.
 1. **Ideation & Sketching (host-guided):** Generate 30-50 rough thumbnails (advisory target) across different nouns and combinations.

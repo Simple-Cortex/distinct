@@ -1,5 +1,7 @@
 # Review, Evaluate, and Decide
 
+For logos and identity systems, the critic setup, claim classes (MEASURED, JUDGED, OBSERVED) and the context gate are in `references/critique.md`.
+
 ## When to use
 Use this route when draft concepts (idea stage) or systems (system stage) are ready for evaluation. This route transforms subjective preference into structured, platform-aligned decisions. It governs the presentation, scoring, perception testing, and final locking of the visual identity.
 
@@ -39,7 +41,7 @@ Ask decision-makers to review privately before group discussion. Limit your disc
 Collect a private top-three vote from each decision-maker before any discussion begins. Instruct them to sleep on the decision for 24 hours before the final call.
 
 ### 3. Evaluate with the Logo & Identity Scorecard
-Have 1-4 independent scorers evaluate the finalists using the nine-criterion scorecard. The designer's scores are kept in a separate column and excluded from the average. 
+Have 1-4 independent scorers evaluate the finalists using the nine-criterion scorecard. This is the human-panel and owner instrument; the agent critic uses the pointwise, no-composite rubric in `references/critique.md`. The designer's scores are kept in a separate column and excluded from the average. 
 
 **Criteria:** Semantic fit, Distinctiveness, Simplicity and recall, Scalability, Accessibility, Craft, System potential, Longevity, Protectability.
 **Scale:** 1 (fails) to 5 (excellent).
