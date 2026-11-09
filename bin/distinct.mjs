@@ -37,11 +37,24 @@ function findNative() {
   return null;
 }
 
+// Generous: a loaded machine can take seconds to start the native binary.
+// DISTINCT_PROBE_TIMEOUT_MS overrides it (positive integer ms; invalid ignored).
+function probeTimeoutMs() {
+  const raw = process.env.DISTINCT_PROBE_TIMEOUT_MS;
+  if (raw !== undefined && /^[0-9]+$/.test(raw.trim())) {
+    const n = parseInt(raw.trim(), 10);
+    if (n > 0) return n;
+  }
+  return 20000;
+}
+const PROBE_TIMEOUT_MS = probeTimeoutMs();
+
 function probeProtocol(binary) {
   const result = spawnSync(binary, ['protocol'], {
     encoding: 'utf-8',
-    timeout: 5000,
+    timeout: PROBE_TIMEOUT_MS,
   });
+  if (result.error && result.error.code === 'ETIMEDOUT') return { timedOut: true };
   if (result.status !== 0) return null;
   try {
     const envelope = JSON.parse(result.stdout.trim());
@@ -187,15 +200,17 @@ function exitWith(code) {
   process.stdout.write('', () => process.exit(code));
 }
 
-function emitUnavailable(command) {
+function emitUnavailable(command, timedOut = false) {
   const envelope = {
     protocol_version: PROTOCOL_VERSION,
     engine_version: '0.4.0',
     execution: { engine: 'node-launcher', command },
     result: null,
-    limitations: ['native binary not available'],
+    limitations: [timedOut ? 'native_probe_timeout' : 'native binary not available'],
     changed: [],
-    error: `native distinct-rs not found or protocol mismatch. Set DISTINCT_RS_BIN or ensure distinct-rs is on PATH.`,
+    error: timedOut
+      ? `native distinct-rs did not answer the protocol probe within ${PROBE_TIMEOUT_MS / 1000} s (protocol probe; system under load?). Retry the command.`
+      : `native distinct-rs not found or protocol mismatch. Set DISTINCT_RS_BIN or ensure distinct-rs is on PATH.`,
   };
   const line = JSON.stringify(envelope);
   console.log(line);
@@ -243,9 +258,9 @@ Requires Node >= ${MIN_NODE_MAJOR}.`);
   }
 
   const probe = probeProtocol(native);
-  if (!probe) {
+  if (!probe || probe.timedOut) {
     const command = args[0] || 'unknown';
-    const n = emitUnavailable(command);
+    const n = emitUnavailable(command, Boolean(probe && probe.timedOut));
     writeTrace(args, 2, n, null);
     exitWith(2);
     return;
@@ -261,6 +276,7 @@ Requires Node >= ${MIN_NODE_MAJOR}.`);
     const result = spawnSync(native, delegatedArgs, {
       stdio: ['inherit', 'inherit', 'inherit'],
     });
+    if (result.signal) console.error(`distinct: native distinct-rs was killed by ${result.signal}`);
     process.exit(result.status ?? 3);
   }
 
@@ -270,6 +286,7 @@ Requires Node >= ${MIN_NODE_MAJOR}.`);
     maxBuffer: 512 * 1024 * 1024,
   });
   const out = result.stdout || Buffer.alloc(0);
+  if (result.signal) console.error(`distinct: native distinct-rs was killed by ${result.signal}`);
   const code = result.status ?? 3;
   writeTrace(args, code, out.length, probe.protocol_version);
   if (out.length > 0) {
