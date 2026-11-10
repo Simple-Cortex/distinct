@@ -27,7 +27,7 @@ Translating the approved platform (essence, attributes, voice) into concrete vis
 - "Which visual traits or competitor clichés must we absolutely avoid to remain distinct?"
 - "If this brand were a physical structure or natural phenomenon, what would it be and why?"
 
-**Artifact fields: `visual-brief.json`** (`{"kind":"source","id":"visual-brief","data":{"type":"visual_brief", ...}}`; the fields below go in `data`)
+**Artifact fields: `visual-brief.json`** (`{"kind":"source","id":"visual-brief","brand_id":"<id>","privacy":"internal","data":{"type":"visual_brief", ...}}`; full envelope in `references/commands.md`; the fields below go in `data`)
 - `inputs`: central idea, attributes, tensions, expression directives, and `inputs.inspiration_refs` (the `ref_id`s from the inspiration board that the brief uses).
 - `noun_list`: categorized nouns, eliminated items with reasons, final 10-15 approved nouns (advisory).
 - `metaphor`: single sentence and 3-6 expressions (advisory target).
