@@ -2922,7 +2922,7 @@ mod tests {
     fn version_line() {
         let (code, out, _) = run_args(&["--version"]);
         assert_eq!(code, 0);
-        assert_eq!(out, "distinct-rs 0.4.0\n");
+        assert_eq!(out, "distinct-rs 0.4.1\n");
     }
 
     #[test]

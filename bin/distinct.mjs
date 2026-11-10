@@ -203,7 +203,7 @@ function exitWith(code) {
 function emitUnavailable(command, timedOut = false) {
   const envelope = {
     protocol_version: PROTOCOL_VERSION,
-    engine_version: '0.4.0',
+    engine_version: '0.4.1',
     execution: { engine: 'node-launcher', command },
     result: null,
     limitations: [timedOut ? 'native_probe_timeout' : 'native binary not available'],
@@ -242,7 +242,7 @@ Requires Node >= ${MIN_NODE_MAJOR}.`);
   }
 
   if (args.includes('--version') || args.includes('-V')) {
-    console.log(`distinct launcher 0.4.0`);
+    console.log(`distinct launcher 0.4.1`);
     process.exit(0);
   }
 
