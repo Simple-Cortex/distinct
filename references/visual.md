@@ -19,7 +19,7 @@ Translating the approved platform (essence, attributes, voice) into concrete vis
 4. **Convert attributes to visual criteria:** Translate abstract words into visual properties (e.g., "straight lines, focal points, momentum") and create an avoid list of category clichés.
 5. **Map the category:** Identify where competitors cluster on mark type, color, and metaphor. Name 1-3 open spaces (advisory target).
 6. **Inventory owned assets (if refresh/rebrand):** Categorize existing elements as keep, evolve, or drop with explicit reasons.
-7. **Draft the Visual Brief:** Compile inputs, nouns, metaphor, criteria, category map, and owned assets into a single `visual_brief` record.
+7. **Draft the Visual Brief:** Compile inputs, nouns, metaphor, criteria, category map, and owned assets into a single `source` record with `data.type: "visual_brief"` (id `visual-brief`).
 8. **Request owner decision:** Ask the owner to review and sign off on the Visual Brief.
 
 **Discovery questions (max 3 per batch)**
@@ -27,7 +27,7 @@ Translating the approved platform (essence, attributes, voice) into concrete vis
 - "Which visual traits or competitor clichés must we absolutely avoid to remain distinct?"
 - "If this brand were a physical structure or natural phenomenon, what would it be and why?"
 
-**Artifact fields: `visual_brief.json`**
+**Artifact fields: `visual-brief.json`** (`{"kind":"source","id":"visual-brief","data":{"type":"visual_brief", ...}}`; the fields below go in `data`)
 - `inputs`: central idea, attributes, tensions, expression directives, and `inputs.inspiration_refs` (the `ref_id`s from the inspiration board that the brief uses).
 - `noun_list`: categorized nouns, eliminated items with reasons, final 10-15 approved nouns (advisory).
 - `metaphor`: single sentence and 3-6 expressions (advisory target).
@@ -61,7 +61,7 @@ node <skill-dir>/bin/distinct.mjs decision record --file decision.json --owner <
 - Do not force an emotional purpose, archaic archetype exercise, or numeric score threshold on every organization.
 
 **Exit criteria**
-- `visual_brief` record imported successfully.
+- Visual brief (`source` record, `data.type: "visual_brief"`) imported successfully.
 - Owner decision recorded for the current scope.
 
 **Example**
@@ -84,7 +84,7 @@ Exact syntax: `references/commands-assets.md` (logo, colour); records, gate and 
 Generating, inspecting, and systematizing the mark and broader identity (typography, color, imagery, motion) based on the approved Visual Brief. Includes structural SVG inspection, intent capture, and proof planning.
 
 **Minimum inputs and prerequisite records**
-- Approved `visual_brief` record.
+- Approved visual brief (`source` record with `data.type: "visual_brief"`).
 - Approved platform and voice records.
 - Explicit scope ID.
 
