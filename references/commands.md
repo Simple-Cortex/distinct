@@ -21,9 +21,9 @@ Cross-cutting facts (verified):
 `D capabilities [--workspace <p>]` — list native commands, host-guided and not-first-pass capabilities. Mutates: no. Exit 0; needs no `--brand` or init.
 
 ### `record import`
-`D record import G --file <record.json>` — store ONE record (not an array). Mutates: yes. Exit 0; 3 on bad JSON, brand_id mismatch, bad id/kind/privacy, or governance kind.
+`D record import G --file <record.json>` — store ONE record (not an array). Mutates: yes. Exit 0; 3 on bad JSON, brand_id mismatch, bad id/kind/privacy, governance kind, or an engine-written kind (`logo_finding`, `logo_proof`, `color_check`).
 Input: `{"schema_version":"1.0.0","kind":"claim","id":"claim-origin","brand_id":"larkspur","created_at":"2026-10-27T00:00:00Z","created_by":{"kind":"agent","id":"host-agent"},"privacy":"internal","dependencies":[],"limitations":[],"data":{"text":"Teas are sourced direct from growers."}}`
-Notes: required by the engine: `kind`, `id`, `privacy`, `brand_id` equal to `--brand`; `data` is free-form. A `source` with `data.quote` and no `data.consent:true` is withheld from packets/exports. Do NOT use it for check_result/review/decision: governance kinds are rejected (exit 3). Use the dedicated commands.
+Notes: required by the engine: `kind`, `id`, `privacy`, `brand_id` equal to `--brand`; `data` is free-form. A `source` with `data.quote` and no `data.consent:true` is withheld from packets/exports. Do NOT use it for check_result/review/decision: governance kinds are rejected (exit 3). Use the dedicated commands. The engine-written kinds `logo_finding`, `logo_proof` and `color_check` are refused too (exit 3), as is any `patch` operation on them.
 
 ### `evidence import`
 `D evidence import G --file <payload> --source-id <id> [--replace]` — store hashed bytes plus an index entry. Mutates: yes. Exit 0 (`byte_hash`, `byte_count`; `unchanged` if same bytes); 3 on invalid id, unreadable file, or reused id with other bytes (`--replace` overwrites).
@@ -72,7 +72,7 @@ Notes: detects tampering and STATE desync (a blocker may repeat).
 
 ### `export`
 `D export G --kind draft|concept_only|specification_only --out <dir> [--force]` — write a kit (`manifest.json` plus records). Mutates: yes (writes `<dir>`). Exit 0; 3 for `production_ready` (never supported), unknown kind, or non-empty `--out` without `--force`.
-Notes: excludes confidential/restricted records and quotes without consent (`excluded` count). `specification_only` also drops asset, logo_finding, proof, logo_intent.
+Notes: excludes confidential/restricted records and quotes without consent (`excluded` count). `specification_only` also drops asset, logo_finding, logo_proof, color_check, proof, logo_intent. In `draft` and `concept_only`, `logo_proof` exports omit `proofs_dir` and `color_check` exports keep only the file name of `pairs_file`, so kits carry no local paths. Scrubbed records keep the stored record hash in the manifest (the hash of the unscrubbed record), so it will not match a hash of the exported file.
 
 ### `check plan create`
 `D check plan create G --file <check_plan.json>` — store a `check_plan` record and resync STATE. Mutates: yes. Exit 0; 3 if `kind` is not `check_plan`.

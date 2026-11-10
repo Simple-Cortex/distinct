@@ -121,4 +121,21 @@ describe('launcher', () => {
     assert.match(launcherSrc, /Node|version|major/i,
       'launcher should reference Node version');
   });
+
+  // A native binary that never answers the probe: exit 2 with
+  // native_probe_timeout instead of hanging or a misleading "not found".
+  it('probe_timeout', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'distinct-slow-'));
+    const slow = join(dir, 'distinct-rs');
+    writeFileSync(slow, '#!/usr/bin/env node\nsetTimeout(() => {}, 30000);\n');
+    chmodSync(slow, 0o755);
+    const r = run(['status', '--brand', 'acme'], {
+      DISTINCT_RS_BIN: slow,
+      DISTINCT_PROBE_TIMEOUT_MS: '300',
+    });
+    assert.equal(r.status, 2, `expected exit 2, got ${r.status}: ${r.stderr}`);
+    const env = JSON.parse(r.stdout.trim().split('\n').pop());
+    assert.deepEqual(env.limitations, ['native_probe_timeout']);
+    assert.match(env.error, /probe/);
+  });
 });

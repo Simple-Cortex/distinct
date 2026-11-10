@@ -22,6 +22,8 @@ function run(args, opts = {}) {
   });
   return {
     status: result.status,
+    signal: result.signal,
+    error: result.error ? `${result.error.code ?? ''} ${result.error.message}` : null,
     stdout: result.stdout || '',
     stderr: result.stderr || '',
     json: () => {
@@ -197,7 +199,7 @@ test('Patch --apply with wrong parent_hash exits 3', { skip: SKIP }, () => {
   };
   const patchPath = writeRecord(wsDir, brandId, 'patch.json', patchPlan);
   const r = run(['patch', '--workspace', wsDir, '--brand', brandId, '--plan', patchPath, '--apply']);
-  assert.equal(r.status, 3, `expected exit 3, got ${r.status}`);
+  assert.equal(r.status, 3, `expected exit 3, got ${r.status} (signal=${r.signal} error=${r.error} stderr=${JSON.stringify(r.stderr)})`);
   const env = r.json();
   assert.ok(env.error, 'expected error field');
   assert.ok(env.error.includes('conflict') || env.error.includes('parent_hash'), `error should mention conflict: ${env.error}`);

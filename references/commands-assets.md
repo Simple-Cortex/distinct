@@ -7,8 +7,8 @@ Notation: `D` = `node <skill-dir>/bin/distinct.mjs`; `G` = `--workspace <p> --br
 Core commands (records, evidence, ingest, gate, decisions, export): `references/commands.md`.
 
 ### `logo inspect`
-`D logo inspect G --file <logo.svg>` — static structural SVG check; stores a `logo_finding`. Mutates: yes. Exit 0 (read `verdict`: `inspected|invalid`); 3 on oversize, depth or element limits.
-Notes: no optical or brand judgment. Scripts and external images give verdict `invalid`.
+`D logo inspect G --file <logo.svg>` — static structural SVG check; stores a `logo_finding`. Mutates: yes. Exit 0 (read `verdict`: `inspected|unsupported_content|invalid`); 3 on oversize, depth or element limits. Supported elements: svg, g, path, rect, circle, ellipse, line, polyline, polygon, title, desc, metadata, defs; anything else is reported as `unsupported_content`. `native_proof` is `available` (render with `logo proof`; inspection does not render). `logo proof` requires the `inspect-<hash12>` finding for the exact file hash to be `inspected`.
+Notes: no optical or brand judgment. Scripts give `unsupported_content`; external images give `invalid`.
 
 ### `logo proof`
 `D logo proof G --file <logo.svg> --out <dir> [--profile <profile.json>] [--force]` — render PNG proofs in a sandboxed resvg worker (10 s, memory cap); stores a `logo_proof`. Mutates: yes (PNGs to `<dir>`). If the host refuses nesting: `os_sandbox: host_inherited` + limitation `os_sandbox_host_inherited`. Exit 0; 2 if the latest inspect verdict for this file hash is not `inspected` or the OS sandbox fails; 3 on bad profile, `..` in `--out`, or non-empty `--out` without `--force`.

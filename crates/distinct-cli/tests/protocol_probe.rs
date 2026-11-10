@@ -22,8 +22,8 @@ fn protocol_probe_real_binary() {
     assert_eq!(out.lines().count(), 1, "one JSON envelope on stdout");
     for needle in [
         "\"protocol_version\":\"distinct/1.0\"",
-        "\"engine_version\":\"0.4.0\"",
-        "\"result\":{\"protocol\":\"distinct/1.0\",\"version\":\"0.4.0\"}",
+        "\"engine_version\":\"0.4.1\"",
+        "\"result\":{\"protocol\":\"distinct/1.0\",\"version\":\"0.4.1\"}",
         "\"error\":null",
     ] {
         assert!(out.contains(needle), "missing {needle} in {out}");
@@ -34,7 +34,7 @@ fn protocol_probe_real_binary() {
 fn version_real_binary() {
     let o = run(&["--version"]);
     assert_eq!(o.status.code(), Some(0));
-    assert_eq!(stdout(&o), "distinct-rs 0.4.0\n");
+    assert_eq!(stdout(&o), "distinct-rs 0.4.1\n");
 }
 
 #[test]

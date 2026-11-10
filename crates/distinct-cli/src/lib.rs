@@ -499,6 +499,24 @@ fn cmd_record_import<O: Write, E: Write>(args: &CliArgs, out: &mut O, _err: &mut
         return write_error(out, "record-import", "brand not initialized", Exit::Invalid);
     }
 
+    // Reject engine-written kinds: they are produced only by `logo inspect`,
+    // `logo proof` and `color check`, and gate downstream commands.
+    if let Some(kind_str) = record["kind"].as_str() {
+        let engine_only =
+            serde_json::from_str::<distinct_core::record::RecordKind>(&format!("\"{kind_str}\""))
+                .is_ok_and(|k| k.is_engine_only());
+        if engine_only {
+            return write_error(
+                out,
+                "record-import",
+                &format!(
+                    "kind '{kind_str}' is written only by the engine (logo inspect, logo proof, color check) and cannot be imported"
+                ),
+                Exit::Invalid,
+            );
+        }
+    }
+
     // Reject governance kinds — use the dedicated command instead.
     if let Some(kind_str) = record["kind"].as_str() {
         if let Ok(k) =
@@ -1521,15 +1539,33 @@ fn cmd_logo_proof<O: Write, E: Write>(args: &CliArgs, out: &mut O, err: &mut E) 
     };
     let svg_hash = distinct_core::hash::hash_bytes(&svg_data);
 
-    // Find the latest logo_finding for this SVG hash
+    // Look up the finding by the deterministic id `logo inspect` writes
+    // (`inspect-<hash12>`), and require the full file hash to match. Only the
+    // engine writes `logo_finding` (`record import` rejects it), so this
+    // cannot be satisfied by a hand-written record.
+    let finding_id = format!("inspect-{}", &svg_hash.as_hex()[..12]);
     let objects = match ws.list_objects(Some(distinct_core::record::RecordKind::LogoFinding)) {
         Ok(o) => o,
         Err(e) => return write_error(out, "logo-proof", &e.to_string(), Exit::Invalid),
     };
 
+    // Several findings may share this id (re-inspection). `list_objects`
+    // order is filesystem order, so pick the latest `created_at`; break ties
+    // by the record's content hash so the choice is deterministic.
     let latest_finding = objects
         .iter()
-        .find(|obj| obj["data"]["file_hash"].as_str() == Some(svg_hash.as_hex()));
+        .filter(|obj| {
+            obj["id"].as_str() == Some(finding_id.as_str())
+                && obj["data"]["file_hash"].as_str() == Some(svg_hash.as_hex())
+        })
+        .max_by_key(|obj| {
+            (
+                obj["created_at"].as_str().unwrap_or("").to_string(),
+                distinct_core::hash::hash_bytes(obj.to_string().as_bytes())
+                    .as_hex()
+                    .to_string(),
+            )
+        });
 
     let verdict = latest_finding
         .and_then(|o| o["data"]["verdict"].as_str())
@@ -1539,7 +1575,7 @@ fn cmd_logo_proof<O: Write, E: Write>(args: &CliArgs, out: &mut O, err: &mut E) 
         return write_error(
             out,
             "logo-proof",
-            &format!("latest inspection verdict is '{verdict}', must be 'inspected' before proof"),
+            &format!("latest inspection verdict is '{verdict}' (looked up {finding_id}), must be 'inspected' before proof"),
             Exit::Unavailable,
         );
     }
@@ -2886,7 +2922,7 @@ mod tests {
     fn version_line() {
         let (code, out, _) = run_args(&["--version"]);
         assert_eq!(code, 0);
-        assert_eq!(out, "distinct-rs 0.4.0\n");
+        assert_eq!(out, "distinct-rs 0.4.1\n");
     }
 
     #[test]
@@ -3049,7 +3085,7 @@ mod tests {
         let val: serde_json::Value = serde_json::from_str(out.trim()).unwrap();
         assert_eq!(val["result"]["brand_id"], "acme");
         assert_eq!(val["result"]["verdict"], "inspected");
-        assert_eq!(val["result"]["native_proof"], "unavailable");
+        assert_eq!(val["result"]["native_proof"], "available");
         assert!(val["result"]["content_hash"].as_str().is_some());
         assert!(val["result"]["finding_id"].as_str().is_some());
 

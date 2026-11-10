@@ -4,13 +4,31 @@ All notable changes to Distinct are documented here. The format follows [Keep a 
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-11-10
+
 ### Added
 - `references/critique.md`: self-critique protocol for logos and identity systems. Findings carry a claim class (MEASURED, JUDGED, OBSERVED), the critic runs in a fresh context on the frozen packet plus proof renders, and the protocol adds order-swapped and adversarial passes, a hidden-name competitor line-up, an anchored pointwise rubric, calibration seeds and a context gate (16/24 px, one-colour, reversed, real application) before any positive verdict.
 - `references/marks-as-code.md`: construct marks as small generators from a grid and named constants, emitting engine-safe SVG (the elements `logo inspect` accepts); optional permissively licensed tooling (skia-pathops, picosvg, SVGO, fontTools, vtracer) and an avoid list with licence reasons.
 - `references/design-tools.md` and `references/design-tools-canvases.md`: host-side guide for design-canvas MCPs (Pencil, Paper, OpenDesign, Doop). Canvas state is never evidence until exported and imported, and canvas approvals are never owner decisions.
+- `references/critique.md` rubric items have stable ids (scored by the eval suite) and new items `negative_space_hazard`, `balance`, `colour_contrast`, `construction_quality`, `engine_safe`; the context gate adds mirrored, rotated and inverted renders, a secondary-figure screen and a cold read in a lockup on a busy plate. New rules: self-flagged risks are reworked or dropped in the same round, boards carry a QA checklist, at most three finalists with a rejected list, similarity is checked rather than asserted. `visual.md`, `inspiration.md` and `iteration.md` add a one-line idea per route before drawing, palette and carried-over decision checks each round, and derivation from a reference's reason rather than its technique.
+- Calibration fixtures (`tests/fixtures/calibration`) and an eval suite (`tests/eval`): layer 1 (engine calibration and scorer tests) runs in CI, layer 2 (critic runs with a model) is host-run.
+- `DISTINCT_PROBE_TIMEOUT_MS` env override (integer ms, default 20000; invalid values ignored) for the launcher's native protocol probe.
 
 ### Changed
 - `SKILL.md`, `references/review.md`, `references/visual.md` and the `review` and `identity` route skills point to the new references; `runtime-manifest.json` lists them.
+- `record import` and `patch` (add, replace, remove) refuse the engine-written kinds `logo_finding`, `logo_proof` and `color_check` (exit 3).
+- `logo inspect` reports `native_proof: "available"` (was `"unavailable"`).
+- All `color check` APCA Lc values change: they now match APCA-W3 0.1.9 (black on white is 106.04, was 114.00).
+- The launcher's native probe timeout is 20 s (was 5 s). A timed-out probe exits 2 with the `native_probe_timeout` limitation and an error naming the probe; a native binary killed by a signal is reported on stderr.
+- `logo proof` picks the `inspect-<hash12>` finding with the latest `created_at` (ties broken by record hash).
+
+### Fixed
+- `color check` APCA Lc now matches the APCA-W3 reference (`apca-w3@0.1.9`, 0.0.98G-4g): black soft-clamp, 2.4-exponent luminance, low-clip and offsets, delta-Y minimum. Black on white is 106.04 (was 114.00). Corrected the sign-convention doc comment and added golden tests (#1).
+- Exports no longer leak local paths: `specification_only` drops `logo_proof` and `color_check`; `draft` and `concept_only` strip `proofs_dir` from `logo_proof` and reduce `color_check.pairs_file` to its file name. Stored records are unchanged. Added a test that scans every exported file for absolute paths (#2).
+- `logo proof` now looks up the finding by the deterministic `inspect-<hash12>` id (and full hash) instead of the first matching record, and `record import` refuses the engine-written kinds `logo_finding`, `logo_proof` and `color_check` (exit 3), so the inspection gate cannot be forged (#3).
+- `logo inspect` reports `native_proof: "available"` (native proof exists via `logo proof`) instead of `"unavailable"` (#3).
+- `references/commands-assets.md` and `references/commands.md` now list the three `logo inspect` verdicts and supported elements, and describe the real `specification_only` exclusions (#4).
+- `references/visual.md` documents the visual brief as a `source` record with `data.type: "visual_brief"` (the `visual_brief` kind did not exist, so `record import` rejected it) (#4).
 
 ## [0.4.0] - 2026-11-03
 

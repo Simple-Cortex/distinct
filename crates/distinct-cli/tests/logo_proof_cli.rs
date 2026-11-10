@@ -344,3 +344,280 @@ fn logo_proof_reports_render_memory_limit_exceeded() {
     assert_eq!(json(&o)["error"], "render_memory_limit_exceeded");
     assert!(!out.exists(), "no output copied on failure");
 }
+
+// ---------------------------------------------------------------------------
+// Issue #3: proof precondition and engine-only kinds
+// ---------------------------------------------------------------------------
+
+#[test]
+fn record_import_rejects_engine_written_kinds() {
+    let (dir, svg) = setup("forged-finding");
+    let hash = distinct_core::hash::hash_bytes(&fs::read(&svg).unwrap());
+    for kind in ["logo_finding", "logo_proof", "color_check"] {
+        let rec = serde_json::json!({
+            "schema_version": distinct_core::record::SCHEMA_VERSION,
+            "kind": kind,
+            "id": format!("inspect-{}", &hash.as_hex()[..12]),
+            "brand_id": "acme",
+            "created_at": "2026-01-01T00:00:00Z",
+            "created_by": {"kind": "agent", "id": "forger"},
+            "privacy": "public",
+            "dependencies": [],
+            "limitations": [],
+            "data": {"verdict": "inspected", "file_hash": hash.as_hex()}
+        });
+        let f = dir.join(format!("forged-{kind}.json"));
+        fs::write(&f, rec.to_string()).unwrap();
+        let o = run(&[
+            "record-import",
+            "--brand",
+            "acme",
+            "--workspace",
+            &dir.to_string_lossy(),
+            "--file",
+            &f.to_string_lossy(),
+        ]);
+        assert_eq!(
+            code(&o),
+            3,
+            "{kind}: {}",
+            String::from_utf8_lossy(&o.stdout)
+        );
+        assert!(
+            String::from_utf8_lossy(&o.stdout).contains("written only by the engine"),
+            "{kind}: {}",
+            String::from_utf8_lossy(&o.stdout)
+        );
+    }
+    // Proof is still refused: no genuine inspection exists.
+    let out = dir.join("proof-out");
+    let o = proof(&dir, &svg, &out, &[]);
+    assert_ne!(code(&o), 0);
+}
+
+#[test]
+fn logo_proof_uses_inspect_record_for_exact_hash() {
+    let (dir, good) = setup("proof-exact-hash");
+    let bad = dir.join("bad.svg");
+    fs::write(
+        &bad,
+        r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><script>x</script></svg>"#,
+    )
+    .unwrap();
+    assert_eq!(code(&inspect_space(&dir, &good)), 0);
+    let o = inspect_space(&dir, &bad);
+    assert_eq!(json(&o)["result"]["verdict"], "unsupported_content");
+
+    // The unsupported SVG must not ride on the other file's finding.
+    let o = proof(&dir, &bad, &dir.join("out-bad"), &[]);
+    assert_ne!(code(&o), 0);
+    assert!(String::from_utf8_lossy(&o.stdout).contains("unsupported_content"));
+
+    let o = proof(&dir, &good, &dir.join("out-good"), &[]);
+    assert_eq!(code(&o), 0, "{}", String::from_utf8_lossy(&o.stdout));
+}
+
+#[test]
+fn logo_proof_uses_latest_finding_for_same_hash() {
+    let (dir, svg) = setup("proof-latest-finding");
+    let hash = distinct_core::hash::hash_bytes(&fs::read(&svg).unwrap());
+    let ws = distinct_core::store::BrandWorkspace::new(&dir, "acme");
+    let mk = |created_at: &str, verdict: &str| {
+        serde_json::json!({
+            "schema_version": distinct_core::record::SCHEMA_VERSION,
+            "kind": "logo_finding",
+            "id": format!("inspect-{}", &hash.as_hex()[..12]),
+            "brand_id": "acme",
+            "created_at": created_at,
+            "created_by": {"kind": "agent", "id": "distinct-rs"},
+            "privacy": "public",
+            "dependencies": [],
+            "limitations": [],
+            "data": {"verdict": verdict, "file_hash": hash.as_hex()}
+        })
+    };
+    ws.store_object(&mk("2026-01-01T00:00:00Z", "inspected"))
+        .unwrap();
+    ws.store_object(&mk("2026-02-01T00:00:00Z", "unsupported_content"))
+        .unwrap();
+    for i in 0..3 {
+        let o = proof(&dir, &svg, &dir.join(format!("out-{i}")), &[]);
+        assert_eq!(code(&o), 2, "{}", String::from_utf8_lossy(&o.stdout));
+        assert!(String::from_utf8_lossy(&o.stdout).contains("unsupported_content"));
+    }
+}
+
+#[test]
+fn patch_refuses_engine_only_kinds() {
+    let (dir, _svg) = setup("patch-engine-only");
+    let ws = dir.to_string_lossy().to_string();
+    for kind in ["logo_finding", "logo_proof", "color_check"] {
+        for op in ["add", "replace", "remove"] {
+            let plan = serde_json::json!({
+                "brand_id": "acme",
+                "operations": [{
+                    "op": op, "kind": kind, "id": "inspect-aaaaaaaaaaaa",
+                    "parent_hash": "a".repeat(64),
+                    "data": {"verdict": "inspected"}
+                }]
+            });
+            let f = dir.join("plan.json");
+            fs::write(&f, plan.to_string()).unwrap();
+            let o = run(&[
+                "patch",
+                "--brand",
+                "acme",
+                "--workspace",
+                &ws,
+                "--plan",
+                &f.to_string_lossy(),
+                "--apply",
+            ]);
+            let out = String::from_utf8_lossy(&o.stdout);
+            assert_eq!(code(&o), 3, "{op} {kind}: {out}");
+            assert!(
+                out.contains("written only by the engine"),
+                "{op} {kind}: {out}"
+            );
+        }
+    }
+    // Content kinds still patch fine.
+    let plan = serde_json::json!({
+        "brand_id": "acme",
+        "operations": [{"op": "add", "kind": "claim", "id": "claim-1", "data": {"text": "x"}}]
+    });
+    let f = dir.join("plan-ok.json");
+    fs::write(&f, plan.to_string()).unwrap();
+    let o = run(&[
+        "patch",
+        "--brand",
+        "acme",
+        "--workspace",
+        &ws,
+        "--plan",
+        &f.to_string_lossy(),
+        "--apply",
+    ]);
+    assert_eq!(code(&o), 0, "{}", String::from_utf8_lossy(&o.stdout));
+}
+
+// ---------------------------------------------------------------------------
+// Issue #2: exports never contain absolute local paths
+// ---------------------------------------------------------------------------
+
+fn collect_files(dir: &Path, acc: &mut Vec<PathBuf>) {
+    for e in fs::read_dir(dir).unwrap() {
+        let p = e.unwrap().path();
+        if p.is_dir() {
+            collect_files(&p, acc);
+        } else {
+            acc.push(p);
+        }
+    }
+}
+
+fn has_drive_path(s: &str) -> bool {
+    let b = s.as_bytes();
+    (0..b.len().saturating_sub(2)).any(|i| {
+        b[i].is_ascii_alphabetic()
+            && (i == 0 || !b[i - 1].is_ascii_alphanumeric())
+            && b[i + 1] == b':'
+            && (b[i + 2] == b'\\' || (b[i + 2] == b'/' && b.get(i + 3) != Some(&b'/')))
+    })
+}
+
+#[test]
+fn drive_path_detector_ignores_urls() {
+    assert!(has_drive_path("C:\\Users\\x"));
+    assert!(has_drive_path("path D:/work"));
+    assert!(!has_drive_path("see https://example.com/a"));
+    assert!(!has_drive_path("file://host"));
+}
+
+#[test]
+fn export_kits_contain_no_absolute_local_paths() {
+    let (dir, svg) = setup("export-no-paths");
+    assert_eq!(code(&inspect_space(&dir, &svg)), 0);
+    let o = proof(&dir, &svg, &dir.join("proof-out"), &[]);
+    assert_eq!(code(&o), 0, "{}", String::from_utf8_lossy(&o.stdout));
+    let pairs = dir.join("pairs.txt");
+    fs::write(&pairs, "000000 ffffff\n").unwrap();
+    let o = run(&[
+        "color",
+        "check",
+        "--brand",
+        "acme",
+        "--workspace",
+        &dir.to_string_lossy(),
+        "--pairs",
+        &pairs.to_string_lossy(),
+    ]);
+    assert_eq!(code(&o), 0);
+
+    let ws = dir.to_string_lossy().to_string();
+    for kind in ["draft", "concept_only", "specification_only"] {
+        let out = dir.join(format!("kit-{kind}"));
+        let o = run(&[
+            "export",
+            "--brand",
+            "acme",
+            "--workspace",
+            &ws,
+            "--kind",
+            kind,
+            "--out",
+            &out.to_string_lossy(),
+            "--tokens",
+            "dtcg",
+        ]);
+        assert_eq!(
+            code(&o),
+            0,
+            "{kind}: {}",
+            String::from_utf8_lossy(&o.stdout)
+        );
+        let mut files = Vec::new();
+        collect_files(&out, &mut files);
+        assert!(!files.is_empty());
+        assert!(
+            out.join("tokens.json").exists() && out.join("GUIDELINES.md").exists(),
+            "{kind}: tokens.json/GUIDELINES.md must be exported and scanned"
+        );
+        for f in &files {
+            let text = fs::read_to_string(f).unwrap();
+            assert!(
+                !text.contains(&ws),
+                "{kind}: {} leaks workspace path",
+                f.display()
+            );
+            assert!(
+                !text.contains("/Users/"),
+                "{kind}: {} leaks /Users/",
+                f.display()
+            );
+            assert!(
+                !has_drive_path(&text),
+                "{kind}: {} leaks drive path",
+                f.display()
+            );
+            assert!(
+                !text.contains("proofs_dir"),
+                "{kind}: {} has proofs_dir",
+                f.display()
+            );
+        }
+        let has_kind = |k: &str| {
+            files
+                .iter()
+                .any(|f| f.to_string_lossy().contains(&format!("/{k}/")))
+        };
+        if kind == "specification_only" {
+            assert!(!has_kind("logo_proof") && !has_kind("color_check"));
+        } else {
+            assert!(
+                has_kind("logo_proof"),
+                "{kind} should keep scrubbed logo_proof"
+            );
+        }
+    }
+}

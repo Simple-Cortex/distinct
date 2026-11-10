@@ -99,7 +99,7 @@ Post-launch, when monitoring evidence indicates brand drift, market shifts, or w
    ```
 
 **Host-Guided Fallback**
-If analytics, survey, or rendering tools are unavailable, rely strictly on manually imported observation records (e.g., a user pasting a CSV of survey results or manually describing optical flaws). Do not fabricate metrics, conversion rates, or tool runs to fill the gap. If optical verification of the evolved assets is required but the native SVG renderer is unavailable, flag `native_proof: unavailable` in the governance log and require host-guided visual inspection in a suitable editor.
+If analytics, survey, or rendering tools are unavailable, rely strictly on manually imported observation records (e.g., a user pasting a CSV of survey results or manually describing optical flaws). Do not fabricate metrics, conversion rates, or tool runs to fill the gap. If optical verification of the evolved assets is required but `logo proof` cannot run (for example `os_sandbox_failed`, or the inspect verdict is not `inspected`), record that limitation in the review and require host-guided visual inspection in a suitable editor.
 
 **Honesty Rules**
 - Never invent survey results, customer sentiment scores, or conversion metrics.

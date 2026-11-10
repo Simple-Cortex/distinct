@@ -43,4 +43,4 @@ jobs:
       - name: Node tests
         env:
           DISTINCT_RS_BIN: ${{ github.workspace }}/target/debug/distinct-rs
-        run: node --test tests/launcher/launcher.test.mjs tests/runtime/*.test.mjs
+        run: node --test tests/launcher/launcher.test.mjs tests/runtime/*.test.mjs tests/eval/*.test.mjs

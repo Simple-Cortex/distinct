@@ -2,3 +2,5 @@ target/
 node_modules/
 .distinct/
 *.trace.jsonl
+tests/eval/results/
+tests/eval/private/

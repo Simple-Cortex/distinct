@@ -2,7 +2,7 @@
 //!
 //! In-house implementations:
 //! - WCAG 2.x relative luminance and contrast ratio
-//! - APCA Lc (SAPC-APCA 0.0.98G constants, labelled `apca_advisory`)
+//! - APCA Lc (APCA-W3 0.0.98G-4g constants, labelled `apca_advisory`)
 //! - Machado 2009 colour-vision deficiency simulation at severity 1.0
 //!   (protanopia, deuteranopia, tritanopia; labelled `simulation`)
 //!
@@ -79,66 +79,72 @@ pub fn wcag_contrast(fg: Colour, bg: Colour) -> f64 {
 }
 
 // ---------------------------------------------------------------------------
-// APCA (Accessible Perceptual Contrast Algorithm) 0.0.98G
+// APCA (Accessible Perceptual Contrast Algorithm) 0.0.98G-4g
 // ---------------------------------------------------------------------------
 
-/// APCA Lc contrast value (SAPC-APCA 0.0.98G).
+/// APCA Lc contrast value.
 ///
-/// Returns a signed value: positive means the text is lighter than the
-/// background, negative means darker. The magnitude is the perceptual
-/// contrast. Labelled `apca_advisory` in output.
+/// Port of `APCAcontrast` and `sRGBtoY` from the APCA-W3 reference
+/// implementation, `apca-w3@0.1.9` (`src/apca-w3.js`, constants "0.0.98G-4g
+/// W3 Compatible"), https://github.com/Myndex/apca-w3. The JavaScript is not
+/// vendored; this is a straight re-implementation of the published algorithm.
 ///
-/// Constants from the published SAPC-APCA 0.0.98G specification.
+/// Returns a signed value: positive means dark text on a lighter background
+/// (normal polarity), negative means light text on a darker background
+/// (reverse polarity). The magnitude is the perceptual contrast. Labelled
+/// `apca_advisory` in output.
 pub fn apca_lc(text: Colour, bg: Colour) -> f64 {
-    let text_y = sapc_luminance(text);
-    let bg_y = sapc_luminance(bg);
+    // G-4g constants (reference `SA98G`).
+    const NORM_BG: f64 = 0.56;
+    const NORM_TXT: f64 = 0.57;
+    const REV_TXT: f64 = 0.62;
+    const REV_BG: f64 = 0.65;
+    const BLK_THRS: f64 = 0.022;
+    const BLK_CLMP: f64 = 1.414;
+    const SCALE_BOW: f64 = 1.14;
+    const SCALE_WOB: f64 = 1.14;
+    const LO_BOW_OFFSET: f64 = 0.027;
+    const LO_WOB_OFFSET: f64 = 0.027;
+    const DELTA_Y_MIN: f64 = 0.0005;
+    const LO_CLIP: f64 = 0.1;
 
-    const S_SOFT_CLF: f64 = 0.022;
-    const S_SOFT_FLR: f64 = 0.001;
-    const S_SCALE: f64 = 1.14;
-    const S_OFFSET: f64 = 0.001_204_891_357_670_328_4;
-
-    const D_SOFT_CLF: f64 = 0.03;
-    const D_SOFT_FLR: f64 = 0.001;
-    const D_SCALE: f64 = 1.14;
-    const D_OFFSET: f64 = 0.000_399_999_999_999_999_96;
-
-    let sapc = if bg_y > text_y {
-        // Normal polarity (dark text on light bg)
-        let b = bg_y.powf(0.56) - S_OFFSET;
-        let t = text_y.powf(0.57) - S_OFFSET;
-        let delta = b - t;
-        if delta < S_SOFT_CLF {
-            0.0
+    let soft_clamp = |y: f64| {
+        if y > BLK_THRS {
+            y
         } else {
-            delta * S_SCALE
-        }
-    } else {
-        // Reverse polarity (light text on dark bg)
-        let t = text_y.powf(0.62) - D_OFFSET;
-        let b = bg_y.powf(0.65) - D_OFFSET;
-        let delta = t - b;
-        if delta < D_SOFT_CLF {
-            0.0
-        } else {
-            -(delta * D_SCALE)
+            y + (BLK_THRS - y).powf(BLK_CLMP)
         }
     };
+    let txt_y = soft_clamp(apca_luminance(text));
+    let bg_y = soft_clamp(apca_luminance(bg));
 
-    // Soft floor: use the polarity-appropriate threshold
-    let floor = if sapc >= 0.0 { S_SOFT_FLR } else { D_SOFT_FLR };
-    if sapc.abs() < floor {
-        0.0
-    } else {
-        sapc * 100.0
+    if (bg_y - txt_y).abs() < DELTA_Y_MIN {
+        return 0.0;
     }
+
+    let out = if bg_y > txt_y {
+        let sapc = (bg_y.powf(NORM_BG) - txt_y.powf(NORM_TXT)) * SCALE_BOW;
+        if sapc < LO_CLIP {
+            0.0
+        } else {
+            sapc - LO_BOW_OFFSET
+        }
+    } else {
+        let sapc = (bg_y.powf(REV_BG) - txt_y.powf(REV_TXT)) * SCALE_WOB;
+        if sapc > -LO_CLIP {
+            0.0
+        } else {
+            sapc + LO_WOB_OFFSET
+        }
+    };
+    out * 100.0
 }
 
-/// SAPC luminance from sRGB, using the APCA-specific exponents.
-fn sapc_luminance(c: Colour) -> f64 {
-    let lin = c.to_linear();
-    // SAPC uses its own weighting of linear sRGB
-    0.2126729 * lin[0] + 0.7151522 * lin[1] + 0.0721750 * lin[2]
+/// APCA luminance (`sRGBtoY`): simple 2.4 exponent with the APCA channel
+/// coefficients (not the piecewise sRGB curve).
+fn apca_luminance(c: Colour) -> f64 {
+    let ch = |v: u8| (v as f64 / 255.0).powf(2.4);
+    0.2126729 * ch(c.r) + 0.7151522 * ch(c.g) + 0.0721750 * ch(c.b)
 }
 
 // ---------------------------------------------------------------------------
@@ -333,16 +339,22 @@ mod tests {
     }
 
     #[test]
-    fn apca_black_on_white_positive() {
-        let black = Colour { r: 0, g: 0, b: 0 };
-        let white = Colour {
-            r: 255,
-            g: 255,
-            b: 255,
-        };
-        let lc = apca_lc(black, white);
-        assert!(lc > 0.0, "black on white should have positive Lc, got {lc}");
-        assert!(lc > 100.0, "black on white APCA should be high, got {lc}");
+    fn apca_golden_values_match_apca_w3_0_1_9() {
+        let cases = [
+            ("#000000", "#ffffff", 106.04),
+            ("#ffffff", "#000000", -107.88),
+            ("#888888", "#ffffff", 63.06),
+            ("#1a1a1a", "#f5f5f5", 98.30),
+            ("#ffffff", "#888888", -68.54),
+            ("#777777", "#7a7a7a", 0.00),
+        ];
+        for (fg, bg, want) in cases {
+            let lc = apca_lc(Colour::from_hex(fg).unwrap(), Colour::from_hex(bg).unwrap());
+            assert!(
+                (lc - want).abs() <= 0.05,
+                "{fg} on {bg}: got {lc}, want {want}"
+            );
+        }
     }
 
     #[test]

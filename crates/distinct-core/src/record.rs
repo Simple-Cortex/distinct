@@ -48,6 +48,14 @@ impl RecordKind {
         !self.is_governance()
     }
 
+    /// Whether this kind is written only by the engine (`logo inspect`,
+    /// `logo proof`, `color check`) and gates downstream commands. `record
+    /// import` and `patch` refuse to write these.
+    #[must_use]
+    pub fn is_engine_only(self) -> bool {
+        matches!(self, Self::LogoFinding | Self::LogoProof | Self::ColorCheck)
+    }
+
     /// The string form used in JSON.
     #[must_use]
     pub fn as_str(self) -> &'static str {
