@@ -19,7 +19,7 @@ Translating the approved platform (essence, attributes, voice) into concrete vis
 4. **Convert attributes to visual criteria:** Translate abstract words into visual properties (e.g., "straight lines, focal points, momentum") and create an avoid list of category clichés.
 5. **Map the category:** Identify where competitors cluster on mark type, color, and metaphor. Name 1-3 open spaces (advisory target).
 6. **Inventory owned assets (if refresh/rebrand):** Categorize existing elements as keep, evolve, or drop with explicit reasons.
-7. **Draft the Visual Brief:** Compile inputs, nouns, metaphor, criteria, category map, and owned assets into a single `visual_brief` record.
+7. **Draft the Visual Brief:** Compile inputs, nouns, metaphor, criteria, category map, and owned assets into a single `source` record with `data.type: "visual_brief"` (id `visual-brief`).
 8. **Request owner decision:** Ask the owner to review and sign off on the Visual Brief.
 
 **Discovery questions (max 3 per batch)**
@@ -27,7 +27,7 @@ Translating the approved platform (essence, attributes, voice) into concrete vis
 - "Which visual traits or competitor clichés must we absolutely avoid to remain distinct?"
 - "If this brand were a physical structure or natural phenomenon, what would it be and why?"
 
-**Artifact fields: `visual_brief.json`**
+**Artifact fields: `visual-brief.json`** (`{"kind":"source","id":"visual-brief","brand_id":"<id>","privacy":"internal","data":{"type":"visual_brief", ...}}`; full envelope in `references/commands.md`; the fields below go in `data`)
 - `inputs`: central idea, attributes, tensions, expression directives, and `inputs.inspiration_refs` (the `ref_id`s from the inspiration board that the brief uses).
 - `noun_list`: categorized nouns, eliminated items with reasons, final 10-15 approved nouns (advisory).
 - `metaphor`: single sentence and 3-6 expressions (advisory target).
@@ -61,7 +61,7 @@ node <skill-dir>/bin/distinct.mjs decision record --file decision.json --owner <
 - Do not force an emotional purpose, archaic archetype exercise, or numeric score threshold on every organization.
 
 **Exit criteria**
-- `visual_brief` record imported successfully.
+- Visual brief (`source` record, `data.type: "visual_brief"`) imported successfully.
 - Owner decision recorded for the current scope.
 
 **Example**
@@ -84,12 +84,16 @@ Exact syntax: `references/commands-assets.md` (logo, colour); records, gate and 
 Generating, inspecting, and systematizing the mark and broader identity (typography, color, imagery, motion) based on the approved Visual Brief. Includes structural SVG inspection, intent capture, and proof planning.
 
 **Minimum inputs and prerequisite records**
-- Approved `visual_brief` record.
+- Approved visual brief (`source` record with `data.type: "visual_brief"`).
 - Approved platform and voice records.
 - Explicit scope ID.
 
+Build marks as code per `references/marks-as-code.md` (watch file size and node count against a hand-written baseline; a generated mark many times larger needs justification or simplification); write the pass contract (criteria and thresholds) in `direct` per `references/critique.md` before drawing.
+
 **Procedure**
 0. **Logo breakdown gate (mandatory):** run `gate --scope logo_intent`; stop while it shows `logo_breakdown_missing` (see "Logos you like" in `references/inspiration.md`). Before drawing candidates, read the breakdown principles.
+0a. **Palette and idea first:** confirm the palette source (and rank: primary, secondary, accent) at intake, and re-confirm any carried-over accent each round. State and record a one-line idea per territory or route before drawing any geometry; if removing the idea line leaves the mark saying nothing distinct, the route is not ready.
+0b. **Reference reasoning:** derive marks from the reference's reason (belief, basic unit, heritage) mapped to the client's equivalent, not from copying its technique.
 1. **Ideation & Sketching (host-guided):** Generate 30-50 rough thumbnails (advisory target) across different nouns and combinations.
 2. **Shortlist & Vectorization (host-guided):** Select 3-15 distinct ideas (advisory target), vectorize with minimal anchor points, and refine optically. Each candidate's rationale cites the breakdown `transferable_principles` it uses and confirms it avoids every `do_not_copy` item.
 3. **Capture Logo Intent:** Record the approved concept, defining features, intended construction, protected geometry, and target media into a `logo_intent` record.

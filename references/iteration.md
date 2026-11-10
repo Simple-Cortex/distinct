@@ -31,6 +31,8 @@ Ask the owner (max 3 questions per batch):
 2. "Does this feedback challenge the core idea we just locked, or is it about how the idea is applied?"
 3. "Which specific touchpoint, size, or context is failing the hard checks?"
 
+At the start of each round, restate every carried-over decision (palette, accent, type) and ask the owner to keep or change it. Never carry a default forward silently.
+
 ### 2. Define protected invariants and the minimal patch
 Identify what must stay exactly the same. The mark's silhouette, core metaphor, and semantic fit are protected invariants. Draft a minimal patch plan.
 If the feedback is a "Frankenstein request" (a mash-up of two rejected concepts or a demand to combine unrelated elements), explain objectively why it fails. A mash-up rarely solves the underlying problem and usually destroys the craft and semantic fit. Propose a minimal alternative that solves the underlying constraint without breaking the lock.
